@@ -31,6 +31,9 @@ module.exports = {
 		'no-plusplus': 'off',
 		'no-param-reassign': 'off',
 		'prefer-destructuring': 'off',
+		'prefer-spread': 'off',
+		'prefer-rest-params': 'off',
+		'func-names': 'off',
 		'no-bitwise': 'off',
 		'import/no-unresolved': 'off',
 		'react/jsx-filename-extension': [

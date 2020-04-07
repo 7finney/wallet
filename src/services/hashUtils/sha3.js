@@ -34,7 +34,7 @@ const hash = require('./keccak');
  * @param {Object} object
  * @return {Boolean}
  */
-const isBN = function(object) {
+const isBN = function (object) {
   return BN.isBN(object);
 };
 
@@ -45,7 +45,7 @@ const isBN = function(object) {
  * @param {Object} object
  * @return {Boolean}
  */
-const isBigNumber = function(object) {
+const isBigNumber = function (object) {
   return object && object.constructor && object.constructor.name === 'BigNumber';
 };
 
@@ -56,7 +56,7 @@ const isBigNumber = function(object) {
  * @param {Number|String|BN} number, string, HEX string or BN
  * @return {BN} BN
  */
-const toBN = function(number) {
+const toBN = function (number) {
   try {
     return numberToBN.apply(null, arguments);
   } catch (e) {
@@ -70,32 +70,10 @@ const toBN = function(number) {
  * @method toTwosComplement
  * @param {Number|String|BN} number
  * @return {String}
- */
-const toTwosComplement = function(number) {
-  return `0x${toBN(number)
-    .toTwos(256)
-    .toString(16, 64)}`;
-};
-
-/**
- * Checks if the given string is an address
- *
- * @method isAddress
- * @param {String} address the given HEX address
- * @return {Boolean}
- */
-const isAddress = function(address) {
-  // check if it has the basic requirements of an address
-  if (!/^(0x)?[0-9a-f]{40}$/i.test(address)) {
-    return false;
-    // If it's ALL lowercase or ALL upppercase
-  }
-  if (/^(0x|0X)?[0-9a-f]{40}$/.test(address) || /^(0x|0X)?[0-9A-F]{40}$/.test(address)) {
-    return true;
-    // Otherwise check each case
-  }
-  return checkAddressChecksum(address);
-};
+//  */
+// const toTwosComplement = function (number) {
+//   return `0x${toBN(number).toTwos(256).toString(16, 64)}`;
+// };
 
 /**
  * Checks if the given string is a checksummed address
@@ -104,7 +82,7 @@ const isAddress = function(address) {
  * @param {String} address the given HEX address
  * @return {Boolean}
  */
-var checkAddressChecksum = function(address) {
+const checkAddressChecksum = function (address) {
   // Check each case
   address = address.replace(/^0x/i, '');
   const addressHash = sha3(address.toLowerCase()).replace(/^0x/i, '');
@@ -122,6 +100,26 @@ var checkAddressChecksum = function(address) {
 };
 
 /**
+ * Checks if the given string is an address
+ *
+ * @method isAddress
+ * @param {String} address the given HEX address
+ * @return {Boolean}
+ */
+const isAddress = function (address) {
+  // check if it has the basic requirements of an address
+  if (!/^(0x)?[0-9a-f]{40}$/i.test(address)) {
+    return false;
+    // If it's ALL lowercase or ALL upppercase
+  }
+  if (/^(0x|0X)?[0-9a-f]{40}$/.test(address) || /^(0x|0X)?[0-9A-F]{40}$/.test(address)) {
+    return true;
+    // Otherwise check each case
+  }
+  return checkAddressChecksum(address);
+};
+
+/**
  * Should be called to pad string to expected length
  *
  * @method leftPad
@@ -130,14 +128,14 @@ var checkAddressChecksum = function(address) {
  * @param {String} sign, by default 0
  * @returns {String} right aligned string
  */
-const leftPad = function(string, chars, sign) {
-  const hasPrefix = /^0x/i.test(string) || typeof string === 'number';
-  string = string.toString().replace(/^0x/i, '');
-
-  const padding = chars - string.length + 1 >= 0 ? chars - string.length + 1 : 0;
-
-  return (hasPrefix ? '0x' : '') + new Array(padding).join(sign || '0') + string;
-};
+// const leftPad = function (string, chars, sign) {
+//   const hasPrefix = /^0x/i.test(string) || typeof string === 'number';
+//   string = string.toString().replace(/^0x/i, '');
+//
+//   const padding = chars - string.length + 1 >= 0 ? chars - string.length + 1 : 0;
+//
+//   return (hasPrefix ? '0x' : '') + new Array(padding).join(sign || '0') + string;
+// };
 
 /**
  * Should be called to pad string to expected length
@@ -148,14 +146,14 @@ const leftPad = function(string, chars, sign) {
  * @param {String} sign, by default 0
  * @returns {String} right aligned string
  */
-const rightPad = function(string, chars, sign) {
-  const hasPrefix = /^0x/i.test(string) || typeof string === 'number';
-  string = string.toString().replace(/^0x/i, '');
-
-  const padding = chars - string.length + 1 >= 0 ? chars - string.length + 1 : 0;
-
-  return (hasPrefix ? '0x' : '') + string + new Array(padding).join(sign || '0');
-};
+// const rightPad = function (string, chars, sign) {
+//   const hasPrefix = /^0x/i.test(string) || typeof string === 'number';
+//   string = string.toString().replace(/^0x/i, '');
+//
+//   const padding = chars - string.length + 1 >= 0 ? chars - string.length + 1 : 0;
+//
+//   return (hasPrefix ? '0x' : '') + string + new Array(padding).join(sign || '0');
+// };
 
 /**
  * Should be called to get hex representation (prefixed by 0x) of utf8 string
@@ -164,21 +162,16 @@ const rightPad = function(string, chars, sign) {
  * @param {String} str
  * @returns {String} hex representation of input string
  */
-const utf8ToHex = function(str: string) {
+const utf8ToHex = function (str: string) {
   str = utf8.encode(str);
   let hex = '';
 
   // remove \u0000 padding from either side
+  // eslint-disable-next-line no-control-regex
   str = str.replace(/^(?:\u0000)*/, '');
-  str = str
-    .split('')
-    .reverse()
-    .join('');
+  str = str.split('').reverse().join('');
   str = str.replace(/^(?:\u0000)*/, '');
-  str = str
-    .split('')
-    .reverse()
-    .join('');
+  str = str.split('').reverse().join('');
 
   for (let i = 0; i < str.length; i++) {
     const code = str.charCodeAt(i);
@@ -198,7 +191,7 @@ const utf8ToHex = function(str: string) {
  * @param {String} hex
  * @returns {String} ascii string representation of hex value
  */
-const hexToUtf8 = function(hex) {
+const hexToUtf8 = function (hex) {
   if (!isHexStrict(hex)) {
     throw new Error(`The parameter "${hex}" must be a valid HEX string.`);
   }
@@ -209,15 +202,9 @@ const hexToUtf8 = function(hex) {
 
   // remove 00 padding from either side
   hex = hex.replace(/^(?:00)*/, '');
-  hex = hex
-    .split('')
-    .reverse()
-    .join('');
+  hex = hex.split('').reverse().join('');
   hex = hex.replace(/^(?:00)*/, '');
-  hex = hex
-    .split('')
-    .reverse()
-    .join('');
+  hex = hex.split('').reverse().join('');
 
   const l = hex.length;
 
@@ -238,7 +225,7 @@ const hexToUtf8 = function(hex) {
  * @param {String|Number|BN} value
  * @return {String}
  */
-const hexToNumber = function(value) {
+const hexToNumber = function (value) {
   if (!value) {
     return value;
   }
@@ -257,7 +244,7 @@ const hexToNumber = function(value) {
  * @param {String|Number|BN} value
  * @return {String}
  */
-const hexToNumberString = function(value) {
+const hexToNumberString = function (value) {
   if (!value) {
     return value;
   }
@@ -276,7 +263,7 @@ const hexToNumberString = function(value) {
  * @param {String|Number|BN} value
  * @return {String}
  */
-const numberToHex = function(value) {
+const numberToHex = function (value) {
   if (_.isNull(value) || _.isUndefined(value)) {
     return value;
   }
@@ -300,7 +287,7 @@ const numberToHex = function(value) {
  * @param {Array} bytes
  * @return {String} the hex string
  */
-const bytesToHex = function(bytes) {
+const bytesToHex = function (bytes) {
   for (var hex = [], i = 0; i < bytes.length; i++) {
     /* jshint ignore:start */
     hex.push((bytes[i] >>> 4).toString(16));
@@ -319,7 +306,7 @@ const bytesToHex = function(bytes) {
  * @param {string} hex
  * @return {Array} the byte array
  */
-const hexToBytes = function(hex) {
+const hexToBytes = function (hex) {
   hex = hex.toString();
 
   if (!isHexStrict(hex)) {
@@ -344,7 +331,7 @@ const hexToBytes = function(hex) {
  * @param {Boolean} returnType
  * @return {String}
  */
-const toHex = function(value, returnType) {
+const toHex = function (value, returnType) {
   /* jshint maxcomplexity: false */
 
   if (isAddress(value)) {
@@ -386,7 +373,7 @@ const toHex = function(value, returnType) {
  * @param {String} hex to be checked
  * @returns {Boolean}
  */
-var isHexStrict = function(hex) {
+var isHexStrict = function (hex) {
   return (_.isString(hex) || _.isNumber(hex)) && /^(-)?0x[0-9a-f]*$/i.test(hex);
 };
 
@@ -397,7 +384,7 @@ var isHexStrict = function(hex) {
  * @param {String} hex to be checked
  * @returns {Boolean}
  */
-const isHex = function(hex) {
+const isHex = function (hex) {
   return (_.isString(hex) || _.isNumber(hex)) && /^(-0x|0x)?[0-9a-f]*$/i.test(hex);
 };
 
@@ -411,7 +398,7 @@ const isHex = function(hex) {
  */
 const SHA3_NULL_S = '0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470';
 
-const sha3 = function(value) {
+const sha3 = function (value) {
   if (isBN(value)) {
     value = value.toString();
   }

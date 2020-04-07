@@ -12,9 +12,13 @@
   "dependencies": {
     "@eva-design/eva": "^1.4.0",
     "@ui-kitten/components": "^4.4.1",
+    "bn.js": "^5.1.1",
+    "number-to-bn": "^1.7.0",
     "react": "16.11.0",
     "react-native": "0.62.1",
-    "react-native-svg": "^12.0.3"
+    "react-native-svg": "^12.0.3",
+    "underscore": "^1.10.2",
+    "utf8": "^3.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.6.2",
