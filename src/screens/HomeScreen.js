@@ -1,13 +1,17 @@
 import React from 'react';
 import {StyleSheet} from 'react-native';
-import {Layout, Text, Divider} from '@ui-kitten/components';
+import {Layout, Text, Divider, Button} from '@ui-kitten/components';
+import deployUnsignedTx from '../services/sign';
 
-const HomeScreen = () => (
-  <Layout style={styles.container}>
-    <Text category="h1">Home</Text>
-    <Divider />
-  </Layout>
-);
+const HomeScreen = () => {
+  return (
+    <Layout style={styles.container}>
+      <Text category="h1">Home</Text>
+      <Divider />
+      <Button onPress={deployUnsignedTx}>PRESSED TIMES</Button>
+    </Layout>
+  );
+};
 
 export default HomeScreen;
 
