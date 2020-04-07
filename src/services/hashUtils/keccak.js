@@ -77,116 +77,17 @@ const RC = [
   2147483648,
 ];
 
-const Keccak = bits => ({
+const Keccak = (bits) => ({
   blocks: [],
   reset: true,
   block: 0,
   start: 0,
   blockCount: (1600 - (bits << 1)) >> 5,
   outputBlocks: bits >> 5,
-  s: (s => [].concat(s, s, s, s, s))([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
+  s: ((s) => [].concat(s, s, s, s, s))([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
 });
 
-const update = (state, message) => {
-  const {length} = message;
-  const {blocks} = state;
-  const byteCount = state.blockCount << 2;
-  const {blockCount} = state;
-  const {outputBlocks} = state;
-  const {s} = state;
-  let index = 0;
-  let i;
-  let code;
-
-  // update
-  while (index < length) {
-    if (state.reset) {
-      state.reset = false;
-      blocks[0] = state.block;
-      for (i = 1; i < blockCount + 1; ++i) {
-        blocks[i] = 0;
-      }
-    }
-    if (typeof message !== 'string') {
-      for (i = state.start; index < length && i < byteCount; ++index) {
-        blocks[i >> 2] |= message[index] << SHIFT[i++ & 3];
-      }
-    } else {
-      for (i = state.start; index < length && i < byteCount; ++index) {
-        code = message.charCodeAt(index);
-        if (code < 0x80) {
-          blocks[i >> 2] |= code << SHIFT[i++ & 3];
-        } else if (code < 0x800) {
-          blocks[i >> 2] |= (0xc0 | (code >> 6)) << SHIFT[i++ & 3];
-          blocks[i >> 2] |= (0x80 | (code & 0x3f)) << SHIFT[i++ & 3];
-        } else if (code < 0xd800 || code >= 0xe000) {
-          blocks[i >> 2] |= (0xe0 | (code >> 12)) << SHIFT[i++ & 3];
-          blocks[i >> 2] |= (0x80 | ((code >> 6) & 0x3f)) << SHIFT[i++ & 3];
-          blocks[i >> 2] |= (0x80 | (code & 0x3f)) << SHIFT[i++ & 3];
-        } else {
-          code = 0x10000 + (((code & 0x3ff) << 10) | (message.charCodeAt(++index) & 0x3ff));
-          blocks[i >> 2] |= (0xf0 | (code >> 18)) << SHIFT[i++ & 3];
-          blocks[i >> 2] |= (0x80 | ((code >> 12) & 0x3f)) << SHIFT[i++ & 3];
-          blocks[i >> 2] |= (0x80 | ((code >> 6) & 0x3f)) << SHIFT[i++ & 3];
-          blocks[i >> 2] |= (0x80 | (code & 0x3f)) << SHIFT[i++ & 3];
-        }
-      }
-    }
-    state.lastByteIndex = i;
-    if (i >= byteCount) {
-      state.start = i - byteCount;
-      state.block = blocks[blockCount];
-      for (i = 0; i < blockCount; ++i) {
-        s[i] ^= blocks[i];
-      }
-      f(s);
-      state.reset = true;
-    } else {
-      state.start = i;
-    }
-  }
-
-  // finalize
-  i = state.lastByteIndex;
-  blocks[i >> 2] |= KECCAK_PADDING[i & 3];
-  if (state.lastByteIndex === byteCount) {
-    blocks[0] = blocks[blockCount];
-    for (i = 1; i < blockCount + 1; ++i) {
-      blocks[i] = 0;
-    }
-  }
-  blocks[blockCount - 1] |= 0x80000000;
-  for (i = 0; i < blockCount; ++i) {
-    s[i] ^= blocks[i];
-  }
-  f(s);
-
-  // toString
-  let hex = '';
-  let j = 0;
-  let block;
-  while (j < outputBlocks) {
-    for (i = 0; i < blockCount && j < outputBlocks; ++i, ++j) {
-      block = s[i];
-      hex +=
-        HEX_CHARS[(block >> 4) & 0x0f] +
-        HEX_CHARS[block & 0x0f] +
-        HEX_CHARS[(block >> 12) & 0x0f] +
-        HEX_CHARS[(block >> 8) & 0x0f] +
-        HEX_CHARS[(block >> 20) & 0x0f] +
-        HEX_CHARS[(block >> 16) & 0x0f] +
-        HEX_CHARS[(block >> 28) & 0x0f] +
-        HEX_CHARS[(block >> 24) & 0x0f];
-    }
-    if (j % blockCount === 0) {
-      f(s);
-      i = 0;
-    }
-  }
-  return `0x${hex}`;
-};
-
-const f = s => {
+const f = (s) => {
   let h;
   let l;
   let n;
@@ -431,7 +332,106 @@ const f = s => {
   }
 };
 
-const keccak = bits => str => {
+const update = (state, message) => {
+  const {length} = message;
+  const {blocks} = state;
+  const byteCount = state.blockCount << 2;
+  const {blockCount} = state;
+  const {outputBlocks} = state;
+  const {s} = state;
+  let index = 0;
+  let i;
+  let code;
+
+  // update
+  while (index < length) {
+    if (state.reset) {
+      state.reset = false;
+      blocks[0] = state.block;
+      for (i = 1; i < blockCount + 1; ++i) {
+        blocks[i] = 0;
+      }
+    }
+    if (typeof message !== 'string') {
+      for (i = state.start; index < length && i < byteCount; ++index) {
+        blocks[i >> 2] |= message[index] << SHIFT[i++ & 3];
+      }
+    } else {
+      for (i = state.start; index < length && i < byteCount; ++index) {
+        code = message.charCodeAt(index);
+        if (code < 0x80) {
+          blocks[i >> 2] |= code << SHIFT[i++ & 3];
+        } else if (code < 0x800) {
+          blocks[i >> 2] |= (0xc0 | (code >> 6)) << SHIFT[i++ & 3];
+          blocks[i >> 2] |= (0x80 | (code & 0x3f)) << SHIFT[i++ & 3];
+        } else if (code < 0xd800 || code >= 0xe000) {
+          blocks[i >> 2] |= (0xe0 | (code >> 12)) << SHIFT[i++ & 3];
+          blocks[i >> 2] |= (0x80 | ((code >> 6) & 0x3f)) << SHIFT[i++ & 3];
+          blocks[i >> 2] |= (0x80 | (code & 0x3f)) << SHIFT[i++ & 3];
+        } else {
+          code = 0x10000 + (((code & 0x3ff) << 10) | (message.charCodeAt(++index) & 0x3ff));
+          blocks[i >> 2] |= (0xf0 | (code >> 18)) << SHIFT[i++ & 3];
+          blocks[i >> 2] |= (0x80 | ((code >> 12) & 0x3f)) << SHIFT[i++ & 3];
+          blocks[i >> 2] |= (0x80 | ((code >> 6) & 0x3f)) << SHIFT[i++ & 3];
+          blocks[i >> 2] |= (0x80 | (code & 0x3f)) << SHIFT[i++ & 3];
+        }
+      }
+    }
+    state.lastByteIndex = i;
+    if (i >= byteCount) {
+      state.start = i - byteCount;
+      state.block = blocks[blockCount];
+      for (i = 0; i < blockCount; ++i) {
+        s[i] ^= blocks[i];
+      }
+      f(s);
+      state.reset = true;
+    } else {
+      state.start = i;
+    }
+  }
+
+  // finalize
+  i = state.lastByteIndex;
+  blocks[i >> 2] |= KECCAK_PADDING[i & 3];
+  if (state.lastByteIndex === byteCount) {
+    blocks[0] = blocks[blockCount];
+    for (i = 1; i < blockCount + 1; ++i) {
+      blocks[i] = 0;
+    }
+  }
+  blocks[blockCount - 1] |= 0x80000000;
+  for (i = 0; i < blockCount; ++i) {
+    s[i] ^= blocks[i];
+  }
+  f(s);
+
+  // toString
+  let hex = '';
+  let j = 0;
+  let block;
+  while (j < outputBlocks) {
+    for (i = 0; i < blockCount && j < outputBlocks; ++i, ++j) {
+      block = s[i];
+      hex +=
+        HEX_CHARS[(block >> 4) & 0x0f] +
+        HEX_CHARS[block & 0x0f] +
+        HEX_CHARS[(block >> 12) & 0x0f] +
+        HEX_CHARS[(block >> 8) & 0x0f] +
+        HEX_CHARS[(block >> 20) & 0x0f] +
+        HEX_CHARS[(block >> 16) & 0x0f] +
+        HEX_CHARS[(block >> 28) & 0x0f] +
+        HEX_CHARS[(block >> 24) & 0x0f];
+    }
+    if (j % blockCount === 0) {
+      f(s);
+      i = 0;
+    }
+  }
+  return `0x${hex}`;
+};
+
+const keccak = (bits) => (str) => {
   let msg;
   if (str.slice(0, 2) === '0x') {
     msg = [];
@@ -447,5 +447,3 @@ const keccak = bits => str => {
 module.exports = {
   keccak256: keccak(256),
 };
-
-// module.exports =  keccak(256)
