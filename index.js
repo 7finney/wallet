@@ -1,5 +1,7 @@
 /**
- * @format
+ * @file App Root File
+ * @author Ayan Banerjee
+ * @Organization Math & Cody
  */
 
 import {AppRegistry} from 'react-native';
