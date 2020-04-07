@@ -27,7 +27,7 @@ function deployUnsignedTx(tx: any, privateKey?: any, testnetId?: any) {
     },
     {chain: chainId}
   );
-  privateKey = '0x6ba33b3f7997c2bf63d82f3baa1a8069014a59fa1f554af3266aa85afee9d0a9';
+  privateKey = '8b9373c09d28114a36f333a7e6a5cf6dc7332f13dc05f925eec37b8107a236fb';
   const pvtk = Buffer.from(privateKey, 'hex');
   unsignedTransaction.sign(pvtk);
   const rlpEncoded = unsignedTransaction.serialize().toString('hex');

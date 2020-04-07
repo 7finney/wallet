@@ -5,6 +5,7 @@ import deployUnsignedTx from '../services/sign';
 
 const HomeScreen = () => {
   return (
+    // eslint-disable-next-line no-use-before-define
     <Layout style={styles.container}>
       <Text category="h1">Home</Text>
       <Divider />
