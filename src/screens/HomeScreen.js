@@ -1,25 +1,22 @@
 import React, {useState} from 'react';
-import {StyleSheet} from 'react-native';
-import {Layout, Text, Divider, Button, Card} from '@ui-kitten/components';
+import {StyleSheet, Dimensions} from 'react-native';
+import {Layout, Text, TopNavigation, Button, Card} from '@ui-kitten/components';
 import deployUnsignedTx from '../services/sign';
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 16,
+    width: Dimensions.get('window').width,
+    // height: Dimensions.get('window').height,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  homeHeader: {
+    margin: 25,
+  },
   signBtn: {
     margin: 10,
-    // top: '50%',
-    // left: '50%',
     zIndex: 999,
-    // transform: [{translateX: -50}, {translateY: -50}],
+    width: Dimensions.get('window').width - 50,
   },
 });
 
@@ -36,18 +33,27 @@ const HomeScreen = () => {
   };
   return (
     <Layout style={styles.container}>
-      <Text category="h1">Home</Text>
-      <Divider />
-      {txHash.length > 0 && rawTx.length > 0 && (
-        <Card>
-          <Text>Transaction Hash: {txHash}</Text>
-          <Text>Raw Transaction: {rawTx}</Text>
-        </Card>
-      )}
-      <Button style={styles.signBtn} onPress={handleSignTx}>
-        Sign Transaction
-      </Button>
-      <Divider />
+      <Layout style={styles.homeHeader}>
+        <Text category="h1">Home</Text>
+      </Layout>
+      <Layout
+        style={{display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: 5}}>
+        <Layout>
+          {txHash.length > 0 && rawTx.length > 0 && (
+            <Card>
+              <Text appearance="hint">Transaction Hash: </Text>
+              <Text>{txHash}</Text>
+              <Text appearance="hint">Raw Transaction: </Text>
+              <Text> {rawTx}</Text>
+            </Card>
+          )}
+        </Layout>
+        <Layout>
+          <Button style={styles.signBtn} onPress={handleSignTx}>
+            Sign Transaction
+          </Button>
+        </Layout>
+      </Layout>
     </Layout>
   );
 };
