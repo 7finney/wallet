@@ -1,6 +1,7 @@
-import React from 'react';
+import React, {useState} from 'react';
 import QRCodeScanner from 'react-native-qrcode-scanner';
-import {TouchableOpacity, Text, StyleSheet} from 'react-native';
+import {TouchableOpacity, Text, StyleSheet, View} from 'react-native';
+import {Layout} from '@ui-kitten/components';
 
 const styles = StyleSheet.create({
   centerText: {
@@ -18,30 +19,42 @@ const styles = StyleSheet.create({
     color: 'rgb(0,122,255)',
   },
   buttonTouchable: {
-    padding: 16,
+    padding: 36,
+    display: 'flex',
+    backgroundColor: '#000',
   },
 });
 
-const QRScanner = () => {
-  const onSuccess = (e) => {
-    console.log('Success: ', e.data);
-  };
+const QRScanner = ({onSuccess}) => {
+  const [dismiss, setDismiss] = useState(false);
+
   return (
     <QRCodeScanner
       onRead={onSuccess}
-      flashMode={QRCodeScanner.Constants.FlashMode.torch}
-      topContent={
-        <Text style={styles.centerText}>
-          Go to <Text style={styles.textBold}>wikipedia.org/wiki/QR_code</Text> on your computer and
-          scan the QR code.
-        </Text>
-      }
+      showMarker
+      cameraProps={{useCamera2Api:true}}
+      containerStyle={{margin: 25}}
       bottomContent={
-        <TouchableOpacity style={styles.buttonTouchable}>
-          <Text style={styles.buttonText}>OK. Got it!</Text>
-        </TouchableOpacity>
+        !dismiss && (
+          <View>
+            <TouchableOpacity
+              onPress={() => {
+                console.log('Dismiss');
+                setDismiss(true);
+              }}
+              style={styles.buttonTouchable}>
+              <View>
+                <Text h3>Scan Your Transaction QR</Text>
+              </View>
+              <View>
+                <Text style={styles.buttonText}>OK. Got it!</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        )
       }
     />
   );
 };
+
 export default QRScanner;

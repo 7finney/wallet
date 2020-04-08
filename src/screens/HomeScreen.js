@@ -23,14 +23,19 @@ const styles = StyleSheet.create({
 
 const HomeScreen = () => {
   const [txHash, setTxHash] = useState('');
-
   const [rawTx, setrawTx] = useState('');
+  const [scan, setScan] = useState(false);
 
   const handleSignTx = () => {
     console.log('Handling');
     const {transactionHash, rawTransaction} = deployUnsignedTx;
     setTxHash(transactionHash);
     setrawTx(rawTransaction);
+  };
+
+  const handleScanner = (e) => {
+    setScan(false);
+    console.log('Success: ', e.data);
   };
   return (
     <Layout style={styles.container}>
@@ -55,7 +60,9 @@ const HomeScreen = () => {
           </Button>
         </Layout>
       </Layout>
-      <QRScanner />
+      {scan && <QRScanner onSuccess={handleScanner} />}
+      <Button onPress={() => setScan(true)}>Scan</Button>
+      <Button onPress={() => setScan(false)}>Stop Scan</Button>
     </Layout>
   );
 };
