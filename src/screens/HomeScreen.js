@@ -1,7 +1,8 @@
 import React, {useState} from 'react';
 import {StyleSheet, Dimensions} from 'react-native';
-import {Layout, Text, TopNavigation, Button, Card} from '@ui-kitten/components';
+import {Layout, Text, Button, Card} from '@ui-kitten/components';
 import deployUnsignedTx from '../services/sign';
+import QRScanner from '../components/QRScanner';
 
 const styles = StyleSheet.create({
   container: {
@@ -54,6 +55,7 @@ const HomeScreen = () => {
           </Button>
         </Layout>
       </Layout>
+      <QRScanner />
     </Layout>
   );
 };
