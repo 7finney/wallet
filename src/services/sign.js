@@ -34,15 +34,10 @@ function deployUnsignedTx(tx: any, privateKey?: any, testnetId?: any) {
   const rawTransaction = `0x${rlpEncoded}`;
   const transactionHash = sha3(rawTransaction);
 
-  const c = {
-    callInterface: {
-      command: 'deploy-signed-tx',
-      payload: rawTransaction,
-      testnetId,
-    },
+  return {
+    transactionHash,
+    rawTransaction,
   };
-  // TODO REMOVE
-  console.log(transactionHash, c);
 }
 
 const tx = {
