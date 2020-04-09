@@ -9,15 +9,11 @@ const styles = StyleSheet.create({
     width: Dimensions.get('window').width,
     height: Dimensions.get('window').height,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
   },
   homeHeader: {
     padding: 10,
-    position: 'absolute',
-    top: 0,
-    // marginTop: -1,
     width: '100%',
-    textAlign: 'center',
     backgroundColor: '#2d4bf7',
   },
   homeHeaderText: {
@@ -34,37 +30,76 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
   },
+  error: {
+    backgroundColor: '#eb4034',
+    width: '100%',
+    padding: 20,
+  },
 });
 
 const HomeScreen = () => {
   const [txHash, setTxHash] = useState('');
   const [unsignedTx, setUnsignedTx] = useState({});
   const [rawTx, setrawTx] = useState('');
+  const [error, setError] = useState('');
   const [scan, setScan] = useState(false);
 
   const handleSignTx = () => {
     console.log('Handling');
-    const {transactionHash, rawTransaction} = deployUnsignedTx;
+    setError('');
+    const {transactionHash, rawTransaction} = deployUnsignedTx(unsignedTx);
     setTxHash(transactionHash);
     setrawTx(rawTransaction);
   };
 
   const handleScanner = (e) => {
     setScan(false);
+    setError('');
     console.log('Success: ', e.data);
-    setUnsignedTx(e.data);
+    try {
+      setUnsignedTx(JSON.parse(e.data));
+    } catch (e) {
+      console.log('er', e);
+      setError('Invalid Transaction');
+      setTimeout(() => setError(''), 5000);
+    }
   };
   return (
     <Layout style={styles.container}>
       <Layout style={styles.homeHeader}>
         <Text style={styles.homeHeaderText} category="h1">
-          Wallet Home
+          Wallet
         </Text>
       </Layout>
+      {error !== '' && (
+        <Layout style={styles.error}>
+          <Text style={{textAlign: 'center', color: '#fff', fontSize: 18}}>{error}</Text>
+        </Layout>
+      )}
       <Layout
         style={{display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: 5}}>
+        {Object.keys(unsignedTx).length > 0 && (
+          <Layout
+            style={{
+              marginBottom: 10,
+              padding: 10,
+            }}>
+            <Card>
+              <Text appearance="hint">Transaction To Be Signed: </Text>
+              {Object.keys(unsignedTx).map((k) => (
+                <Text h4 key={k}>
+                  {k}: {unsignedTx[k]}{' '}
+                </Text>
+              ))}
+            </Card>
+          </Layout>
+        )}
         {txHash.length > 0 && rawTx.length > 0 && (
-          <Layout>
+          <Layout
+            style={{
+              marginBottom: 10,
+              padding: 10,
+            }}>
             <Card>
               <Text appearance="hint">Transaction Hash: </Text>
               <Text>{txHash}</Text>
@@ -75,9 +110,15 @@ const HomeScreen = () => {
         )}
         {Object.keys(unsignedTx).length > 0 && (
           <Layout>
-            <Button style={styles.signBtn} onPress={handleSignTx}>
-              Sign Transaction
-            </Button>
+            {txHash === '' ? (
+              <Button style={styles.signBtn} onPress={handleSignTx}>
+                Sign Transaction
+              </Button>
+            ) : (
+              <Button style={[styles.signBtn, {backgroundColor: '#15348a'}]}>
+                Sign Transaction
+              </Button>
+            )}
           </Layout>
         )}
       </Layout>
@@ -100,7 +141,13 @@ const HomeScreen = () => {
           shadowRadius: 2,
           elevation: 2,
         }}
-        onPress={() => setScan(!scan)}>
+        onPress={() => {
+          setScan(!scan);
+          setError('');
+          setTxHash('');
+          setrawTx('');
+          setUnsignedTx({});
+        }}>
         {scan === false ? (
           <Icon style={styles.icon} fill="#8F9BB3" name="camera" />
         ) : (

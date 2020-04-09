@@ -12,11 +12,13 @@ const styles = StyleSheet.create({
   },
   textBold: {
     fontWeight: '500',
-    color: '#000',
+    color: '#fff',
+    textAlign: 'center',
   },
   buttonText: {
     fontSize: 21,
     color: 'rgb(0,122,255)',
+    textAlign: 'center',
   },
   buttonTouchable: {
     padding: 36,
@@ -31,25 +33,31 @@ const QRScanner = ({onSuccess}) => {
       onRead={onSuccess}
       showMarker
       fadeIn={false}
-      cameraProps={{useCamera2Api: true}}
-      containerStyle={{margin: 25}}
+      containerStyle={{margin: 25, backgroundColor: '#000'}}
       bottomContent={
-        !dismiss && (
-          <View>
+        !dismiss ? (
+          <View
+            style={{
+              justifyContent: 'flex-start',
+              alignItems: 'center',
+            }}>
             <TouchableOpacity
               onPress={() => {
-                console.log('Dismiss');
                 setDismiss(true);
               }}
               style={styles.buttonTouchable}>
               <View>
-                <Text h3>Scan Your Transaction QR</Text>
+                <Text style={styles.textBold} h3>
+                  Scan Your Transaction QR
+                </Text>
               </View>
               <View>
                 <Text style={styles.buttonText}>OK. Got it!</Text>
               </View>
             </TouchableOpacity>
           </View>
+        ) : (
+          <View />
         )
       }
     />
