@@ -20,8 +20,6 @@ const styles = StyleSheet.create({
   },
   buttonTouchable: {
     padding: 36,
-    display: 'flex',
-    backgroundColor: '#000',
   },
 });
 
@@ -32,7 +30,8 @@ const QRScanner = ({onSuccess}) => {
     <QRCodeScanner
       onRead={onSuccess}
       showMarker
-      cameraProps={{useCamera2Api:true}}
+      fadeIn={false}
+      cameraProps={{useCamera2Api: true}}
       containerStyle={{margin: 25}}
       bottomContent={
         !dismiss && (
