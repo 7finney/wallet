@@ -14,6 +14,7 @@
     "@eva-design/eva": "^1.4.0",
     "@tradle/react-native-http": "^2.0.1",
     "@ui-kitten/components": "^4.4.1",
+    "@ui-kitten/eva-icons": "^5.0.0-alpha.1",
     "assert": "^1.5.0",
     "bn.js": "^5.1.1",
     "browserify-zlib": "^0.1.4",
