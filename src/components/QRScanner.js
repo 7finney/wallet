@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   buttonTouchable: {
-    padding: 36,
+    padding: 40,
   },
 });
 
@@ -32,11 +32,12 @@ const QRScanner = ({onSuccess}) => {
       onRead={onSuccess}
       showMarker
       fadeIn={false}
-      containerStyle={{marginTop: 60, backgroundColor: '#fff'}}
+      containerStyle={{marginTop: 60, backgroundColor: '#000'}}
       bottomContent={
         !dismiss ? (
           <View
             style={{
+              marginTop: 40,
               justifyContent: 'flex-start',
               alignItems: 'center',
             }}>

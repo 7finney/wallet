@@ -107,11 +107,9 @@ const HomeScreen = (props) => {
                   <Text appearance="hint">Transaction To Be Signed: </Text>
                   {tx &&
                     Object.keys(tx.unsignedTx).map((k) => (
-                      <Layout>
-                        <Text h4 key={k}>
-                          {k}:
-                        </Text>
-                        <Input placeholder="Place your Text" value={tx.unsignedTx[k]} disbaled />
+                      <Layout key={k}>
+                        <Text h4>{k}:</Text>
+                        <Input placeholder="Place your Text" value={tx.unsignedTx[k].toString()} disbaled />
                       </Layout>
                     ))}
                 </Card>
