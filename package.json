@@ -45,7 +45,10 @@
     "react-native-svg": "^12.0.3",
     "react-native-tcp": "^3.3.2",
     "react-native-udp": "^2.7.0",
+    "react-redux": "^7.2.0",
     "readable-stream": "^1.0.33",
+    "redux": "^4.0.5",
+    "redux-thunk": "^2.3.0",
     "stream-browserify": "^1.0.0",
     "string_decoder": "^0.10.31",
     "timers-browserify": "^1.4.2",
@@ -102,7 +105,8 @@
     "timers": "timers-browserify",
     "tty": "tty-browserify",
     "vm": "vm-browserify",
-    "tls": false
+    "tls": false,
+    "_stream_writable": "readable-stream/writable"
   },
   "browser": {
     "zlib": "browserify-zlib",
@@ -120,7 +124,7 @@
     "fs": "react-native-level-fs",
     "_stream_transform": "readable-stream/transform",
     "_stream_readable": "readable-stream/readable",
-    "_stream_writable": "readable-stream/writable",
+    "_stream_writab le": "readable-stream/writable",
     "_stream_duplex": "readable-stream/duplex",
     "_stream_passthrough": "readable-stream/passthrough",
     "dgram": "react-native-udp",
@@ -128,6 +132,7 @@
     "timers": "timers-browserify",
     "tty": "tty-browserify",
     "vm": "vm-browserify",
-    "tls": false
+    "tls": false,
+    "_stream_writable": "readable-stream/writable"
   }
 }

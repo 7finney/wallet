@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
 import {StyleSheet, Dimensions, TouchableOpacity, ScrollView} from 'react-native';
+import {connect} from 'react-redux';
 import {Layout, Text, Button, Card, Icon, Input} from '@ui-kitten/components';
 import deployUnsignedTx from '../services/sign';
 import QRScanner from '../components/QRScanner';
@@ -39,8 +40,6 @@ const styles = StyleSheet.create({
 
 const HomeScreen = () => {
   const [txHash, setTxHash] = useState('');
-  const [unsignedTx, setUnsignedTx] = useState({});
-  const [rawTx, setrawTx] = useState('');
   const [error, setError] = useState('');
   const [scan, setScan] = useState(false);
 
@@ -48,7 +47,6 @@ const HomeScreen = () => {
     setError('');
     const {transactionHash, rawTransaction} = deployUnsignedTx(unsignedTx);
     setTxHash(transactionHash);
-    setrawTx(rawTransaction);
   };
 
   const handleScanner = (e) => {
@@ -56,7 +54,6 @@ const HomeScreen = () => {
     setError('');
     console.log('Success: ', e.data);
     try {
-      setUnsignedTx(JSON.parse(e.data));
     } catch (e) {
       console.log('er', e);
       setError('Invalid Transaction');
@@ -160,8 +157,6 @@ const HomeScreen = () => {
             setScan(!scan);
             setError('');
             setTxHash('');
-            setrawTx('');
-            setUnsignedTx({});
           }}>
           {scan === false ? (
             <Icon style={styles.icon} fill="#8F9BB3" name="camera" />
@@ -174,4 +169,4 @@ const HomeScreen = () => {
   );
 };
 
-export default HomeScreen;
+export default connect()(HomeScreen);
