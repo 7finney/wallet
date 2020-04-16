@@ -5,7 +5,7 @@ import {RAW_TX, UNSIGNED_TX} from './types';
  *  @param {data: any} -- unsigned Data from QRScanner
  * */
 export const setUnsignedTx = (data) => (dispatch) => {
-  dispatch({type: UNSIGNED_TX, payload: JSON.parse(data.data)});
+  dispatch({type: UNSIGNED_TX, payload: data});
 };
 
 /**

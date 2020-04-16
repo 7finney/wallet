@@ -1,8 +1,6 @@
 import React, {useState} from 'react';
 import QRCodeScanner from 'react-native-qrcode-scanner';
 import {TouchableOpacity, Text, StyleSheet, View} from 'react-native';
-import {connect} from 'react-redux';
-import {setUnsignedTx} from '../actions';
 
 const styles = StyleSheet.create({
   centerText: {
@@ -26,15 +24,15 @@ const styles = StyleSheet.create({
   },
 });
 
-const QRScanner = (props) => {
-  const {setUnsignedTx} = props;
+const QRScanner = ({onSuccess}) => {
   const [dismiss, setDismiss] = useState(false);
+
   return (
     <QRCodeScanner
-      onRead={setUnsignedTx}
+      onRead={onSuccess}
       showMarker
       fadeIn={false}
-      containerStyle={{margin: 25, backgroundColor: '#000'}}
+      containerStyle={{marginTop: 60, backgroundColor: '#fff'}}
       bottomContent={
         !dismiss ? (
           <View
@@ -65,4 +63,4 @@ const QRScanner = (props) => {
   );
 };
 
-export default connect({}, {setUnsignedTx})(QRScanner);
+export default QRScanner;

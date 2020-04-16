@@ -34,6 +34,7 @@ module.exports = {
 		'prefer-spread': 'off',
 		'prefer-rest-params': 'off',
 		'func-names': 'off',
+		'react/require-default-props': 'off',
 		'no-bitwise': 'off',
 		'import/no-unresolved': 'off',
 		'react/jsx-filename-extension': [

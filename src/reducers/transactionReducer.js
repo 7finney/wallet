@@ -1,6 +1,9 @@
 import {RAW_TX, UNSIGNED_TX} from '../actions/types';
 
-const initialState = {};
+const initialState = {
+  unsignedTx: {},
+  rawTx: '',
+};
 
 export default (state = initialState, action) => {
   switch (action.type) {
