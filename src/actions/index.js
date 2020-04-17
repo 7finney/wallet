@@ -1,4 +1,5 @@
-import {RAW_TX, UNSIGNED_TX} from './types';
+import {RAW_TX, SET_AUTH_TOKEN, UNSIGNED_TX} from './types';
+import {getFromAsyncStorage, getToken, setToAsyncStorage, verifyToken} from './utils';
 
 /**
  *  setUnsignedTx Func -> Sets the Unsigned TX from the QRScanner
@@ -14,4 +15,31 @@ export const setUnsignedTx = (data) => (dispatch) => {
  * */
 export const setRawTx = (data) => (dispatch) => {
   dispatch({type: RAW_TX, payload: data});
+};
+
+export const getAuthToken = () => async (dispatch) => {
+  let token = getFromAsyncStorage('authToken');
+  if (token) {
+    if (await verifyToken(token)) {
+      dispatch({type: SET_AUTH_TOKEN, payload: token});
+    } else {
+      token = getToken();
+      setToAsyncStorage('authToken', token)
+        .then(() => {
+          dispatch({type: SET_AUTH_TOKEN, payload: token});
+        })
+        .catch(() => {
+          dispatch({type: SET_AUTH_TOKEN, payload: null});
+        });
+    }
+  } else {
+    token = getToken();
+    setToAsyncStorage('authToken', token)
+      .then(() => {
+        dispatch({type: SET_AUTH_TOKEN, payload: token});
+      })
+      .catch(() => {
+        dispatch({type: SET_AUTH_TOKEN, payload: null});
+      });
+  }
 };

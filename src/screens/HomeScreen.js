@@ -1,11 +1,11 @@
 import React, {useState, useEffect} from 'react';
-import {StyleSheet, Dimensions, TouchableOpacity, ScrollView, View} from 'react-native';
+import {StyleSheet, Dimensions, TouchableOpacity, ScrollView, ToastAndroid} from 'react-native';
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
 import {Layout, Text, Button, Card, Icon, Input} from '@ui-kitten/components';
 import deployUnsignedTx from '../services/sign';
 import QRScanner from '../components/QRScanner';
-import {setUnsignedTx, setRawTx} from '../actions';
+import {setUnsignedTx, setRawTx, getAuthToken} from '../actions';
 
 const styles = StyleSheet.create({
   container: {
@@ -51,6 +51,11 @@ const HomeScreen = (props) => {
     console.log(props);
   }, [tx]);
 
+  useEffect(() => {
+    console.log('Getting Auth Token');
+    ToastAndroid.showWithGravity('Fetching AuthToken', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
+    props.getAuthToken();
+  }, []);
   const handleSignTx = () => {
     setError('');
     const {transactionHash, rawTransaction} = deployUnsignedTx(props.tx.unsignedTx);
@@ -63,8 +68,8 @@ const HomeScreen = (props) => {
     setError('');
     console.log('Success: ', e.data);
     try {
-      const data = JSON.parse(e.data);
-      props.setUnsignedTx(data);
+      // const data = JSON.parse(e.data);
+      props.setUnsignedTx(e.data);
     } catch (err) {
       console.log('er', err);
       setError('Invalid Transaction');
@@ -109,7 +114,11 @@ const HomeScreen = (props) => {
                     Object.keys(tx.unsignedTx).map((k) => (
                       <Layout key={k}>
                         <Text h4>{k}:</Text>
-                        <Input placeholder="Place your Text" value={tx.unsignedTx[k].toString()} disbaled />
+                        <Input
+                          placeholder="Place your Text"
+                          value={tx.unsignedTx[k].toString()}
+                          disbaled
+                        />
                       </Layout>
                     ))}
                 </Card>
@@ -191,6 +200,7 @@ const HomeScreen = (props) => {
 HomeScreen.propTypes = {
   setUnsignedTx: PropTypes.func,
   setRawTx: PropTypes.func,
+  getAuthToken: PropTypes.func,
   // eslint-disable-next-line react/forbid-prop-types
   tx: PropTypes.any,
 };
@@ -201,4 +211,4 @@ const mapStateToProps = ({tx}) => {
   };
 };
 
-export default connect(mapStateToProps, {setUnsignedTx, setRawTx})(HomeScreen);
+export default connect(mapStateToProps, {setUnsignedTx, setRawTx, getAuthToken})(HomeScreen);
