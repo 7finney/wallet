@@ -1,12 +1,20 @@
-import {RAW_TX, SET_AUTH_TOKEN, UNSIGNED_TX} from './types';
+import {RAW_TX, SET_AUTH_TOKEN, UNSIGNED_TX, UNSIGNED_TX_HASH} from './types';
 import {getFromAsyncStorage, getToken, setToAsyncStorage, verifyToken} from './utils';
 
 /**
- *  setUnsignedTx Func -> Sets the Unsigned TX from the QRScanner
- *  @param {data: any} -- unsigned Data from QRScanner
+ *  setUnsignedTx Func -> Sets the Unsigned TX
+ *  @param {data: any} -- unsigned Data from server
  * */
 export const setUnsignedTx = (data) => (dispatch) => {
   dispatch({type: UNSIGNED_TX, payload: data});
+};
+
+/**
+ *  setUnsignedTxHash Func -> Sets the Unsigned TX hash from the QRScanner
+ *  @param {data: any} -- unsigned Data from QRScanner
+ * */
+export const setUnsignedTxHash = (data) => (dispatch) => {
+  dispatch({type: UNSIGNED_TX_HASH, payload: data});
 };
 
 /**

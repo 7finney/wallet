@@ -59,3 +59,22 @@ export async function setToAsyncStorage(key, value) {
     return false;
   }
 }
+
+/**
+ * @param txHash
+ * @param authToken
+ * @returns {Promise<boolean|*>}
+ */
+export async function getUnsignedTx(txHash, authToken) {
+  try {
+    const url = `http://192.168.0.104:4550/api/v0/getUnsignedTx/${txHash}`;
+    const response = await axios.get(url, {
+      headers: {
+        authorization: `Bearer ${authToken}`,
+      },
+    });
+    return response.data.txInfo;
+  } catch (e) {
+    return false;
+  }
+}

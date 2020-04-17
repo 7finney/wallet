@@ -5,7 +5,8 @@ import PropTypes from 'prop-types';
 import {Layout, Text, Button, Card, Icon, Input} from '@ui-kitten/components';
 import deployUnsignedTx from '../services/sign';
 import QRScanner from '../components/QRScanner';
-import {setUnsignedTx, setRawTx, getAuthToken} from '../actions';
+import {setUnsignedTx, setRawTx, getAuthToken, setUnsignedTxHash} from '../actions';
+import {getUnsignedTx} from '../actions/utils';
 
 const styles = StyleSheet.create({
   container: {
@@ -49,10 +50,16 @@ const HomeScreen = (props) => {
 
   // ComponentDidUpdate for tx. Triggers on tx change
   useEffect(() => {
-    console.log(props);
+    if (tx.unsignedTxHash !== undefined && tx.unsignedTxHash !== '' && auth.token !== '') {
+      getUnsignedTx(tx.unsignedTxHash, auth.token).then((unsignedTX) => {
+        if (unsignedTX) {
+          props.setUnsignedTx(unsignedTX);
+        }
+      });
+    }
   }, [tx]);
 
-  // ComponentDIdMount
+  // ComponentDidMount
   useEffect(() => {
     ToastAndroid.showWithGravity('Fetching AuthToken', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
     props.getAuthToken();
@@ -60,10 +67,8 @@ const HomeScreen = (props) => {
 
   // ComponentDidUpdate for auth. Triggers on auth change
   useEffect(() => {
-    // eslint-disable-next-line react/prop-types
     if (auth.token !== '' && auth.token !== undefined) {
       ToastAndroid.showWithGravity('AuthToken Generated', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
-      // eslint-disable-next-line react/prop-types
     } else if (auth.token === '' || auth.token === null) {
       ToastAndroid.showWithGravity(
         'AuthToken Generation Error. Please try again',
@@ -90,8 +95,7 @@ const HomeScreen = (props) => {
     setError('');
     console.log('Success: ', e.data);
     try {
-      // const data = JSON.parse(e.data);
-      props.setUnsignedTx(e.data);
+      props.setUnsignedTxHash(e.data);
     } catch (err) {
       console.log('er', err);
       setError('Invalid Transaction');
@@ -222,7 +226,10 @@ const HomeScreen = (props) => {
 HomeScreen.propTypes = {
   setUnsignedTx: PropTypes.func,
   setRawTx: PropTypes.func,
+  setUnsignedTxHash: PropTypes.func,
   getAuthToken: PropTypes.func,
+  // eslint-disable-next-line react/forbid-prop-types
+  auth: PropTypes.any,
   // eslint-disable-next-line react/forbid-prop-types
   tx: PropTypes.any,
 };
@@ -234,4 +241,6 @@ const mapStateToProps = ({tx, auth}) => {
   };
 };
 
-export default connect(mapStateToProps, {setUnsignedTx, setRawTx, getAuthToken})(HomeScreen);
+export default connect(mapStateToProps, {setUnsignedTx, setRawTx, getAuthToken, setUnsignedTxHash})(
+  HomeScreen
+);
