@@ -1,5 +1,4 @@
 import axios from 'axios';
-import {ToastAndroid} from 'react-native';
 import uuid from 'react-native-uuid';
 import AsyncStorage from '@react-native-community/async-storage';
 
@@ -10,20 +9,15 @@ import AsyncStorage from '@react-native-community/async-storage';
 export function getToken() {
   const appId = uuid.v1();
   const url = `http://192.168.0.104:4550/api/v0/genToken/${appId}`;
-  axios
+  return axios
     .get(url)
     .then((response) => {
       const token = response.data.token;
-      ToastAndroid.showWithGravity('AuthToken Generated', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
+      console.log('token form utils', token);
       return token;
     })
-    .catch((err) => {
-      ToastAndroid.showWithGravity(
-        'AuthToken Generation Error. Please try agina',
-        ToastAndroid.LONG,
-        ToastAndroid.BOTTOM
-      );
-      return err;
+    .catch(() => {
+      return null;
     });
 }
 

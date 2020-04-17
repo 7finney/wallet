@@ -41,21 +41,43 @@ const styles = StyleSheet.create({
 });
 
 const HomeScreen = (props) => {
-  const {tx} = props;
+  const {tx, auth} = props;
 
   const [txHash, setTxHash] = useState('');
   const [error, setError] = useState('');
   const [scan, setScan] = useState(false);
 
+  // ComponentDidUpdate for tx. Triggers on tx change
   useEffect(() => {
     console.log(props);
   }, [tx]);
 
+  // ComponentDIdMount
   useEffect(() => {
-    console.log('Getting Auth Token');
     ToastAndroid.showWithGravity('Fetching AuthToken', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
     props.getAuthToken();
   }, []);
+
+  // ComponentDidUpdate for auth. Triggers on auth change
+  useEffect(() => {
+    // eslint-disable-next-line react/prop-types
+    if (auth.token !== '' && auth.token !== undefined) {
+      ToastAndroid.showWithGravity('AuthToken Generated', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
+      // eslint-disable-next-line react/prop-types
+    } else if (auth.token === '' || auth.token === null) {
+      ToastAndroid.showWithGravity(
+        'AuthToken Generation Error. Please try again',
+        ToastAndroid.LONG,
+        ToastAndroid.BOTTOM
+      );
+    }
+  }, [auth]);
+
+  // componentDidUpdate
+  useEffect(() => {
+    console.log(props);
+  });
+
   const handleSignTx = () => {
     setError('');
     const {transactionHash, rawTransaction} = deployUnsignedTx(props.tx.unsignedTx);
@@ -205,9 +227,10 @@ HomeScreen.propTypes = {
   tx: PropTypes.any,
 };
 
-const mapStateToProps = ({tx}) => {
+const mapStateToProps = ({tx, auth}) => {
   return {
     tx,
+    auth,
   };
 };
 

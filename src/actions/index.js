@@ -18,7 +18,7 @@ export const setRawTx = (data) => (dispatch) => {
 };
 
 export const getAuthToken = () => async (dispatch) => {
-  let token = getFromAsyncStorage('authToken');
+  let token = await getFromAsyncStorage('authToken');
   if (token) {
     if (await verifyToken(token)) {
       dispatch({type: SET_AUTH_TOKEN, payload: token});
@@ -33,7 +33,7 @@ export const getAuthToken = () => async (dispatch) => {
         });
     }
   } else {
-    token = getToken();
+    token = await getToken();
     setToAsyncStorage('authToken', token)
       .then(() => {
         dispatch({type: SET_AUTH_TOKEN, payload: token});
