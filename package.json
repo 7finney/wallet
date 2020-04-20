@@ -49,6 +49,7 @@
     "react-native-tcp": "^3.3.2",
     "react-native-udp": "^2.7.0",
     "react-native-uuid": "^1.4.9",
+    "redux-logger": "^3.0.6",
     "react-redux": "^7.2.0",
     "readable-stream": "^1.0.33",
     "redux": "^4.0.5",

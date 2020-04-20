@@ -31,7 +31,7 @@ export const getAuthToken = () => async (dispatch) => {
     if (await verifyToken(token)) {
       dispatch({type: SET_AUTH_TOKEN, payload: token});
     } else {
-      token = getToken();
+      token = await getToken();
       setToAsyncStorage('authToken', token)
         .then(() => {
           dispatch({type: SET_AUTH_TOKEN, payload: token});

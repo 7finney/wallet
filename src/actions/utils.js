@@ -13,7 +13,6 @@ export function getToken() {
     .get(url)
     .then((response) => {
       const token = response.data.token;
-      console.log('token form utils', token);
       return token;
     })
     .catch(() => {
@@ -28,8 +27,12 @@ export function getToken() {
  */
 export async function verifyToken(authToken) {
   const url = `https://auth.ethco.de/verifyToken/${authToken}`;
-  const res = await axios.get(url);
-  return res.status === 200;
+  try {
+    const res = await axios.get(url);
+    return res.status === 200;
+  } catch (e) {
+    return false;
+  }
 }
 
 /**
