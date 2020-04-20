@@ -3,6 +3,7 @@ import {StyleSheet, Dimensions, TouchableOpacity, ScrollView, ToastAndroid} from
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
 import {Layout, Text, Button, Card, Icon, Input} from '@ui-kitten/components';
+import {values} from 'underscore';
 import deployUnsignedTx from '../services/sign';
 import QRScanner from '../components/QRScanner';
 import {setUnsignedTx, setRawTx, getAuthToken, setUnsignedTxHash} from '../actions';
@@ -90,6 +91,12 @@ const HomeScreen = (props) => {
     props.setRawTx(rawTransaction);
   };
 
+  const updateUnsignedTx = (key, value) => {
+    const newTx = tx.unsignedTx;
+    newTx[key] = value;
+    props.setUnsignedTx(newTx);
+  };
+
   const handleScanner = (e) => {
     setScan(false);
     setError('');
@@ -136,17 +143,54 @@ const HomeScreen = (props) => {
                 }}>
                 <Card>
                   <Text appearance="hint">Transaction To Be Signed: </Text>
-                  {tx &&
-                    Object.keys(tx.unsignedTx).map((k) => (
-                      <Layout key={k}>
-                        <Text h4>{k}:</Text>
+                  {tx && (
+                    // Object.keys(tx.unsignedTx).map((k) => (
+                    //   <Layout key={k}>
+                    //     <Text h4>{k}:</Text>
+                    //     <Input
+                    //       placeholder="Place your Text"
+                    //       value={tx.unsignedTx[k].toString()}
+                    //       disbaled
+                    //     />
+                    //   </Layout>
+                    // ))}
+                    <Layout>
+                      <Layout>
+                        <Text h4>From: </Text>
+                        <Input value={tx.unsignedTx.from} disabled />
+                      </Layout>
+                      <Layout>
+                        <Text h4>To: </Text>
+                        <Input value={tx.unsignedTx.to} disabled />
+                      </Layout>
+                      <Layout>
+                        <Text h4>Nonce: </Text>
+                        <Input value={tx.unsignedTx.nonce} disabled />
+                      </Layout>
+                      <Layout>
+                        <Text h4>Gas: </Text>
+                        <Input value={tx.unsignedTx.gas} disabled />
+                      </Layout>
+                      <Layout>
+                        <Text h4>Gas Price: </Text>
+                        <Input value={tx.unsignedTx.gasPrice} disabled />
+                      </Layout>
+                      <Layout>
+                        <Text h4>Value: </Text>
                         <Input
-                          placeholder="Place your Text"
-                          value={tx.unsignedTx[k].toString()}
-                          disbaled
+                          value={tx.unsignedTx.value}
+                          onChange={(e) => updateUnsignedTx('value', e.data)}
                         />
                       </Layout>
-                    ))}
+                      <Layout>
+                        <Text h4>Data: </Text>
+                        <Input
+                          value={tx.unsignedTx.data}
+                          onChange={(e) => updateUnsignedTx('data', e.data)}
+                        />
+                      </Layout>
+                    </Layout>
+                  )}
                 </Card>
               </Layout>
             )}
