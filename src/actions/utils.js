@@ -76,7 +76,8 @@ export async function getUnsignedTx(txHash, authToken) {
         authorization: `Bearer ${authToken}`,
       },
     });
-    return response.data.txInfo;
+    console.log('response', response);
+    return response.data;
   } catch (e) {
     return false;
   }

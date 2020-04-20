@@ -3,7 +3,6 @@ import {StyleSheet, Dimensions, TouchableOpacity, ScrollView, ToastAndroid} from
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
 import {Layout, Text, Button, Card, Icon, Input} from '@ui-kitten/components';
-import {values} from 'underscore';
 import deployUnsignedTx from '../services/sign';
 import QRScanner from '../components/QRScanner';
 import {setUnsignedTx, setRawTx, getAuthToken, setUnsignedTxHash} from '../actions';
