@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {StyleSheet, Dimensions, TouchableOpacity, ScrollView, ToastAndroid} from 'react-native';
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
@@ -41,12 +41,26 @@ const styles = StyleSheet.create({
   },
 });
 
+// const usePrevious = (value) => {
+//   const ref = useRef();
+//   useEffect(() => {
+//     ref.current = value;
+//   });
+//   return ref.current;
+// };
+
 const HomeScreen = (props) => {
   const {tx, auth} = props;
 
   const [txHash, setTxHash] = useState('');
   const [error, setError] = useState('');
   const [scan, setScan] = useState(false);
+
+  // ComponentDidMount
+  useEffect(() => {
+    ToastAndroid.showWithGravity('Fetching AuthToken', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
+    props.getAuthToken();
+  }, []);
 
   // ComponentDidUpdate for tx. Triggers on tx change
   useEffect(() => {
@@ -59,17 +73,9 @@ const HomeScreen = (props) => {
     }
   }, [tx]);
 
-  // ComponentDidMount
-  useEffect(() => {
-    ToastAndroid.showWithGravity('Fetching AuthToken', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
-    props.getAuthToken();
-  }, []);
-
   // ComponentDidUpdate for auth. Triggers on auth change
   useEffect(() => {
-    if (auth.token !== '' && auth.token !== undefined) {
-      ToastAndroid.showWithGravity('AuthToken Generated', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
-    } else if (auth.token === '' || auth.token === null) {
+    if (auth.token === '' || auth.token === null) {
       ToastAndroid.showWithGravity(
         'AuthToken Generation Error. Please try again',
         ToastAndroid.LONG,
