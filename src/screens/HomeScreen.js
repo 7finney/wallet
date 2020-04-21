@@ -41,14 +41,6 @@ const styles = StyleSheet.create({
   },
 });
 
-// const usePrevious = (value) => {
-//   const ref = useRef();
-//   useEffect(() => {
-//     ref.current = value;
-//   });
-//   return ref.current;
-// };
-
 const HomeScreen = (props) => {
   const {tx, auth} = props;
 
