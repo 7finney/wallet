@@ -53,7 +53,7 @@ const HomeScreen = (props) => {
   const {tx, auth} = props;
 
   const [txHash, setTxHash] = useState('');
-  const [unsignedTx, setUnsignedTxState] = useState({});
+  const [unsignedTxState, setUnsignedTxState] = useState({});
   const [error, setError] = useState('');
   const [scan, setScan] = useState(false);
 
@@ -63,25 +63,26 @@ const HomeScreen = (props) => {
     props.getAuthToken();
   }, []);
 
-  const prevTx = usePrevious({tx});
+  let prevTx;
+  if (tx && Object.keys(tx)) {
+    prevTx = usePrevious({tx});
+  }
   // ComponentDidUpdate for tx. Triggers on tx change
   useEffect(() => {
     if (
       tx.unsignedTxHash !== undefined &&
       tx.unsignedTxHash !== '' &&
-      tx.unsignedTx !== {} &&
       auth.token !== '' &&
-      prevTx.tx.unsignedTx !== tx.unsignedTx
+      prevTx.tx !== tx
     ) {
-      console.log('unsignedTx', tx.unsignedTx, prevTx.tx.unsignedTx);
-      console.log('getUnsigned Tx');
+      console.log('setUnsigned Tx');
       getUnsignedTx(tx.unsignedTxHash, auth.token).then((unsignedTX) => {
         if (unsignedTX) {
           props.setUnsignedTx(unsignedTX);
         }
       });
     }
-    if (unsignedTx === {} && tx.unsignedTx !== {}) {
+    if (tx.unsignedTx !== {} && unsignedTxState !== tx.unsignedTx) {
       console.log('setting UNSIGNED TX');
       setUnsignedTxState(tx.unsignedTx);
     }
@@ -108,17 +109,17 @@ const HomeScreen = (props) => {
 
   const handleSignTx = () => {
     setError('');
-    const {transactionHash, rawTransaction} = deployUnsignedTx(unsignedTx);
+    const {transactionHash, rawTransaction} = deployUnsignedTx(unsignedTxState);
     setTxHash(transactionHash);
     props.setRawTx(rawTransaction);
   };
 
   const updateUnsignedTx = (key, value) => {
     console.log('Updateor', key, value);
-    // const newTx = unsignedTx;
-    // newTx[key] = value;
-    // console.log('NewTx: ', newTx, '\nTx: ', unsignedTx);
-    // setUnsignedTxState(newTx);
+    const newTx = unsignedTxState;
+    newTx[key] = value;
+    console.log('NewTx: ', newTx, '\nTx: ', unsignedTxState);
+    setUnsignedTxState(newTx);
   };
 
   const handleScanner = (e) => {
@@ -158,7 +159,7 @@ const HomeScreen = (props) => {
               alignItems: 'center',
               padding: 5,
             }}>
-            {tx && Object.keys(unsignedTx).length > 0 && (
+            {tx && Object.keys(unsignedTxState).length > 0 && (
               <Layout
                 style={{
                   marginBottom: 10,
@@ -166,45 +167,45 @@ const HomeScreen = (props) => {
                 }}>
                 <Card>
                   <Text appearance="hint">Transaction To Be Signed: </Text>
-                  {tx && unsignedTx && (
+                  {tx && unsignedTxState && (
                     <Layout>
                       <Layout>
                         <Text h4>From: </Text>
-                        <Input value={unsignedTx.from} disabled />
+                        <Input value={unsignedTxState.from} disabled />
                       </Layout>
                       <Layout>
                         <Text h4>To: </Text>
-                        <Input value={unsignedTx.to} disabled />
+                        <Input value={unsignedTxState.to} disabled />
                       </Layout>
                       <Layout>
                         <Text h4>Nonce: </Text>
                         <Input
-                          value={unsignedTx.nonce}
+                          value={unsignedTxState.nonce}
                           onChangeText={(e) => updateUnsignedTx('nonce', e.data)}
                         />
                       </Layout>
                       <Layout>
                         <Text h4>Gas: </Text>
                         <Input
-                          value={unsignedTx.gas}
+                          value={unsignedTxState.gas}
                           onChangeText={(e) => updateUnsignedTx('gas', e)}
                         />
                       </Layout>
                       <Layout>
                         <Text h4>Gas Price: </Text>
-                        <Input value={unsignedTx.gasPrice} disabled />
+                        <Input value={unsignedTxState.gasPrice} disabled />
                       </Layout>
                       <Layout>
                         {/* <Text h4>Value: </Text> */}
                         <Input
                           label="Value"
-                          value={unsignedTx.value}
+                          value={unsignedTxState.value}
                           onChangeText={(e) => updateUnsignedTx('value', e.data)}
                         />
                       </Layout>
                       <Layout>
                         <Text h4>Data: </Text>
-                        <Input value={unsignedTx.data} disabled />
+                        <Input value={unsignedTxState.data} disabled />
                       </Layout>
                     </Layout>
                   )}
@@ -273,6 +274,7 @@ const HomeScreen = (props) => {
           setTxHash('');
           props.setRawTx('');
           props.setUnsignedTx({});
+          props.setUnsignedTxHash('');
         }}>
         {scan === false ? (
           <Icon style={styles.icon} fill="#8F9BB3" name="camera" />
