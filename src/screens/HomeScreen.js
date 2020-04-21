@@ -41,10 +41,19 @@ const styles = StyleSheet.create({
   },
 });
 
+const usePrevious = (value) => {
+  const ref = useRef();
+  useEffect(() => {
+    ref.current = value;
+  });
+  return ref.current;
+};
+
 const HomeScreen = (props) => {
   const {tx, auth} = props;
 
   const [txHash, setTxHash] = useState('');
+  const [unsignedTx, setUnsignedTxState] = useState({});
   const [error, setError] = useState('');
   const [scan, setScan] = useState(false);
 
@@ -54,20 +63,36 @@ const HomeScreen = (props) => {
     props.getAuthToken();
   }, []);
 
+  const prevTx = usePrevious({tx});
   // ComponentDidUpdate for tx. Triggers on tx change
   useEffect(() => {
-    if (tx.unsignedTxHash !== undefined && tx.unsignedTxHash !== '' && auth.token !== '') {
+    if (
+      tx.unsignedTxHash !== undefined &&
+      tx.unsignedTxHash !== '' &&
+      tx.unsignedTx !== {} &&
+      auth.token !== '' &&
+      prevTx.tx.unsignedTx !== tx.unsignedTx
+    ) {
+      console.log('unsignedTx', tx.unsignedTx, prevTx.tx.unsignedTx);
+      console.log('getUnsigned Tx');
       getUnsignedTx(tx.unsignedTxHash, auth.token).then((unsignedTX) => {
         if (unsignedTX) {
           props.setUnsignedTx(unsignedTX);
         }
       });
     }
+    if (unsignedTx === {} && tx.unsignedTx !== {}) {
+      console.log('setting UNSIGNED TX');
+      setUnsignedTxState(tx.unsignedTx);
+    }
   }, [tx]);
 
+  const prevAuth = usePrevious({auth});
   // ComponentDidUpdate for auth. Triggers on auth change
   useEffect(() => {
-    if (auth.token === '' || auth.token === null) {
+    if (auth.token !== '' && auth.token !== undefined && prevAuth.auth.token !== auth.token) {
+      ToastAndroid.showWithGravity('AuthToken Generated', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
+    } else if (auth.token === '' || auth.token === null) {
       ToastAndroid.showWithGravity(
         'AuthToken Generation Error. Please try again',
         ToastAndroid.LONG,
@@ -83,29 +108,30 @@ const HomeScreen = (props) => {
 
   const handleSignTx = () => {
     setError('');
-    const {transactionHash, rawTransaction} = deployUnsignedTx(props.tx.unsignedTx);
+    const {transactionHash, rawTransaction} = deployUnsignedTx(unsignedTx);
     setTxHash(transactionHash);
     props.setRawTx(rawTransaction);
   };
 
   const updateUnsignedTx = (key, value) => {
-    const newTx = tx.unsignedTx;
-    newTx[key] = value;
-    props.setUnsignedTx(newTx);
+    console.log('Updateor', key, value);
+    // const newTx = unsignedTx;
+    // newTx[key] = value;
+    // console.log('NewTx: ', newTx, '\nTx: ', unsignedTx);
+    // setUnsignedTxState(newTx);
   };
 
   const handleScanner = (e) => {
     setScan(false);
     setError('');
-    console.log('Success: ', e.data);
     try {
       props.setUnsignedTxHash(e.data);
     } catch (err) {
-      console.log('er', err);
       setError('Invalid Transaction');
       setTimeout(() => setError(''), 5000);
     }
   };
+
   return (
     <Layout style={styles.container}>
       <Layout style={styles.homeHeader}>
@@ -132,7 +158,7 @@ const HomeScreen = (props) => {
               alignItems: 'center',
               padding: 5,
             }}>
-            {tx && Object.keys(tx.unsignedTx).length > 0 && (
+            {tx && Object.keys(unsignedTx).length > 0 && (
               <Layout
                 style={{
                   marginBottom: 10,
@@ -140,51 +166,45 @@ const HomeScreen = (props) => {
                 }}>
                 <Card>
                   <Text appearance="hint">Transaction To Be Signed: </Text>
-                  {tx && (
-                    // Object.keys(tx.unsignedTx).map((k) => (
-                    //   <Layout key={k}>
-                    //     <Text h4>{k}:</Text>
-                    //     <Input
-                    //       placeholder="Place your Text"
-                    //       value={tx.unsignedTx[k].toString()}
-                    //       disbaled
-                    //     />
-                    //   </Layout>
-                    // ))}
+                  {tx && unsignedTx && (
                     <Layout>
                       <Layout>
                         <Text h4>From: </Text>
-                        <Input value={tx.unsignedTx.from} disabled />
+                        <Input value={unsignedTx.from} disabled />
                       </Layout>
                       <Layout>
                         <Text h4>To: </Text>
-                        <Input value={tx.unsignedTx.to} disabled />
+                        <Input value={unsignedTx.to} disabled />
                       </Layout>
                       <Layout>
                         <Text h4>Nonce: </Text>
-                        <Input value={tx.unsignedTx.nonce} disabled />
+                        <Input
+                          value={unsignedTx.nonce}
+                          onChangeText={(e) => updateUnsignedTx('nonce', e.data)}
+                        />
                       </Layout>
                       <Layout>
                         <Text h4>Gas: </Text>
-                        <Input value={tx.unsignedTx.gas} disabled />
+                        <Input
+                          value={unsignedTx.gas}
+                          onChangeText={(e) => updateUnsignedTx('gas', e)}
+                        />
                       </Layout>
                       <Layout>
                         <Text h4>Gas Price: </Text>
-                        <Input value={tx.unsignedTx.gasPrice} disabled />
+                        <Input value={unsignedTx.gasPrice} disabled />
                       </Layout>
                       <Layout>
-                        <Text h4>Value: </Text>
+                        {/* <Text h4>Value: </Text> */}
                         <Input
-                          value={tx.unsignedTx.value}
-                          onChange={(e) => updateUnsignedTx('value', e.data)}
+                          label="Value"
+                          value={unsignedTx.value}
+                          onChangeText={(e) => updateUnsignedTx('value', e.data)}
                         />
                       </Layout>
                       <Layout>
                         <Text h4>Data: </Text>
-                        <Input
-                          value={tx.unsignedTx.data}
-                          onChange={(e) => updateUnsignedTx('data', e.data)}
-                        />
+                        <Input value={unsignedTx.data} disabled />
                       </Layout>
                     </Layout>
                   )}
