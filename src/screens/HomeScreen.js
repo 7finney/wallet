@@ -2,7 +2,7 @@ import React, {useState, useEffect, useRef} from 'react';
 import {StyleSheet, Dimensions, TouchableOpacity, ScrollView, ToastAndroid} from 'react-native';
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
-import {Layout, Text, Button, Card, Icon, Input} from '@ui-kitten/components';
+import {Layout, Text, Button, Card, Icon, Input, Spinner} from '@ui-kitten/components';
 import deployUnsignedTx from '../services/sign';
 import QRScanner from '../components/QRScanner';
 import {setUnsignedTx, setRawTx, getAuthToken, setUnsignedTxHash} from '../actions';
@@ -56,44 +56,35 @@ const HomeScreen = (props) => {
   const [unsignedTxState, setUnsignedTxState] = useState({});
   const [error, setError] = useState('');
   const [scan, setScan] = useState(false);
+  const [showLoader, setShowLoader] = useState(false);
 
   // ComponentDidMount
   useEffect(() => {
     ToastAndroid.showWithGravity('Fetching AuthToken', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
+    setShowLoader(true);
     props.getAuthToken();
   }, []);
 
-  let prevTx;
-  if (tx && Object.keys(tx)) {
-    prevTx = usePrevious({tx});
-  }
-  // ComponentDidUpdate for tx. Triggers on tx change
+  // ComponentDidUpdate for tx.unsignedTxHash. Triggers on tx Hash change
   useEffect(() => {
-    if (
-      tx.unsignedTxHash !== undefined &&
-      tx.unsignedTxHash !== '' &&
-      auth.token !== '' &&
-      prevTx.tx !== tx
-    ) {
-      console.log('setUnsigned Tx');
+    if (tx.unsignedTxHash !== undefined && tx.unsignedTxHash !== '' && auth.token !== '') {
+      setShowLoader(true);
       getUnsignedTx(tx.unsignedTxHash, auth.token).then((unsignedTX) => {
         if (unsignedTX) {
           props.setUnsignedTx(unsignedTX);
         }
       });
     }
-    if (tx.unsignedTx !== {} && unsignedTxState !== tx.unsignedTx) {
-      console.log('setting UNSIGNED TX');
-      setUnsignedTxState(tx.unsignedTx);
-    }
-  }, [tx]);
+  }, [tx.unsignedTxHash]);
 
   const prevAuth = usePrevious({auth});
   // ComponentDidUpdate for auth. Triggers on auth change
   useEffect(() => {
     if (auth.token !== '' && auth.token !== undefined && prevAuth.auth.token !== auth.token) {
+      setShowLoader(false);
       ToastAndroid.showWithGravity('AuthToken Generated', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
     } else if (auth.token === '' || auth.token === null) {
+      setShowLoader(false);
       ToastAndroid.showWithGravity(
         'AuthToken Generation Error. Please try again',
         ToastAndroid.LONG,
@@ -105,6 +96,10 @@ const HomeScreen = (props) => {
   // componentDidUpdate
   useEffect(() => {
     console.log(props);
+    if (Object.keys(unsignedTxState).length === 0 && Object.keys(tx.unsignedTx).length > 0) {
+      setShowLoader(false);
+      setUnsignedTxState(tx.unsignedTx);
+    }
   });
 
   const handleSignTx = () => {
@@ -115,10 +110,9 @@ const HomeScreen = (props) => {
   };
 
   const updateUnsignedTx = (key, value) => {
-    console.log('Updateor', key, value);
-    const newTx = unsignedTxState;
+    // Deep Copying object
+    const newTx = JSON.parse(JSON.stringify(unsignedTxState));
     newTx[key] = value;
-    console.log('NewTx: ', newTx, '\nTx: ', unsignedTxState);
     setUnsignedTxState(newTx);
   };
 
@@ -152,6 +146,18 @@ const HomeScreen = (props) => {
               <Text style={{textAlign: 'center', color: '#fff', fontSize: 18}}>{error}</Text>
             </Layout>
           )}
+          {showLoader && (
+            <Layout
+              style={{
+                backgroundColor: '#fff',
+                padding: 10,
+                borderRadius: 100,
+                elevation: 5,
+                marginTop: 20,
+              }}>
+              <Spinner size="large" />
+            </Layout>
+          )}
           <Layout
             style={{
               display: 'flex',
@@ -170,42 +176,41 @@ const HomeScreen = (props) => {
                   {tx && unsignedTxState && (
                     <Layout>
                       <Layout>
-                        <Text h4>From: </Text>
-                        <Input value={unsignedTxState.from} disabled />
+                        <Input label="From:" value={unsignedTxState.from} disabled />
                       </Layout>
                       <Layout>
-                        <Text h4>To: </Text>
-                        <Input value={unsignedTxState.to} disabled />
+                        <Input label="To:" value={unsignedTxState.to} disabled />
                       </Layout>
                       <Layout>
                         <Text h4>Nonce: </Text>
                         <Input
-                          value={unsignedTxState.nonce}
-                          onChangeText={(e) => updateUnsignedTx('nonce', e.data)}
+                          value={String(unsignedTxState.nonce)}
+                          onChangeText={(e) => updateUnsignedTx('nonce', e)}
                         />
                       </Layout>
                       <Layout>
                         <Text h4>Gas: </Text>
                         <Input
-                          value={unsignedTxState.gas}
+                          value={String(unsignedTxState.gas)}
                           onChangeText={(e) => updateUnsignedTx('gas', e)}
                         />
                       </Layout>
                       <Layout>
-                        <Text h4>Gas Price: </Text>
-                        <Input value={unsignedTxState.gasPrice} disabled />
-                      </Layout>
-                      <Layout>
-                        {/* <Text h4>Value: </Text> */}
                         <Input
-                          label="Value"
-                          value={unsignedTxState.value}
-                          onChangeText={(e) => updateUnsignedTx('value', e.data)}
+                          label="Gas Price"
+                          value={String(unsignedTxState.gasPrice)}
+                          disabled
                         />
                       </Layout>
                       <Layout>
-                        <Text h4>Data: </Text>
-                        <Input value={unsignedTxState.data} disabled />
+                        <Text h4>Value: </Text>
+                        <Input
+                          value={String(unsignedTxState.value)}
+                          onChangeText={(e) => updateUnsignedTx('value', e)}
+                        />
+                      </Layout>
+                      <Layout>
+                        <Input label="Data" value={unsignedTxState.data} disabled />
                       </Layout>
                     </Layout>
                   )}
