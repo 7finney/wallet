@@ -69,11 +69,19 @@ const HomeScreen = (props) => {
   useEffect(() => {
     if (tx.unsignedTxHash !== undefined && tx.unsignedTxHash !== '' && auth.token !== '') {
       setShowLoader(true);
-      getUnsignedTx(tx.unsignedTxHash, auth.token).then((unsignedTX) => {
-        if (unsignedTX) {
-          props.setUnsignedTx(unsignedTX);
-        }
-      });
+      getUnsignedTx(tx.unsignedTxHash, auth.token)
+        .then((unsignedTX) => {
+          if (unsignedTX) {
+            props.setUnsignedTx(JSON.parse(unsignedTX));
+          } else {
+            setShowLoader(false);
+            setError('Invalid Transaction');
+          }
+        })
+        .catch(() => {
+          setShowLoader(false);
+          setError('Error Getting Transaction');
+        });
     }
   }, [tx.unsignedTxHash]);
 
@@ -277,6 +285,7 @@ const HomeScreen = (props) => {
           setScan(!scan);
           setError('');
           setTxHash('');
+          setUnsignedTxState({});
           props.setRawTx('');
           props.setUnsignedTx({});
           props.setUnsignedTxHash('');
