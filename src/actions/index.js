@@ -1,3 +1,4 @@
+import axios from 'axios';
 import {RAW_TX, SET_AUTH_TOKEN, UNSIGNED_TX, UNSIGNED_TX_HASH} from './types';
 import {getFromAsyncStorage, getToken, setToAsyncStorage, verifyToken} from './utils';
 
@@ -50,4 +51,9 @@ export const getAuthToken = () => async (dispatch) => {
         dispatch({type: SET_AUTH_TOKEN, payload: null});
       });
   }
+};
+
+export const deploySignedTx = (data) => (dispatch) => {
+  const url = `http://192.168.0.104:4550/api/v0/sendTx` ;
+  axios.post();
 };

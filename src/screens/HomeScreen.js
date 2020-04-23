@@ -2,7 +2,18 @@ import React, {useState, useEffect, useRef} from 'react';
 import {StyleSheet, Dimensions, TouchableOpacity, ScrollView, ToastAndroid} from 'react-native';
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
-import {Layout, Text, Button, Card, Icon, Input, Spinner} from '@ui-kitten/components';
+import {
+  Layout,
+  Text,
+  Button,
+  Card,
+  Icon,
+  Input,
+  Spinner,
+  Select,
+  SelectItem,
+  IndexPath,
+} from '@ui-kitten/components';
 import deployUnsignedTx from '../services/sign';
 import QRScanner from '../components/QRScanner';
 import {setUnsignedTx, setRawTx, getAuthToken, setUnsignedTxHash} from '../actions';
@@ -41,6 +52,8 @@ const styles = StyleSheet.create({
   },
 });
 
+const testNets = ['Goerli', 'Ethereum Mainnet', 'Ropsten', 'Rinkeby'];
+
 const usePrevious = (value) => {
   const ref = useRef();
   useEffect(() => {
@@ -54,6 +67,8 @@ const HomeScreen = (props) => {
 
   const [txHash, setTxHash] = useState('');
   const [unsignedTxState, setUnsignedTxState] = useState({});
+  // TODO FIX THIS
+  const [testnet, setTestNet] = useState(IndexPath(0));
   const [error, setError] = useState('');
   const [scan, setScan] = useState(false);
   const [showLoader, setShowLoader] = useState(false);
@@ -108,6 +123,9 @@ const HomeScreen = (props) => {
       setShowLoader(false);
       setUnsignedTxState(tx.unsignedTx);
     }
+    if (showLoader) {
+      setShowLoader(false);
+    }
   });
 
   const handleSignTx = () => {
@@ -127,6 +145,7 @@ const HomeScreen = (props) => {
   const handleScanner = (e) => {
     setScan(false);
     setError('');
+    s;
     try {
       props.setUnsignedTxHash(e.data);
     } catch (err) {
@@ -134,6 +153,8 @@ const HomeScreen = (props) => {
       setTimeout(() => setError(''), 5000);
     }
   };
+
+  const handleDeployTx = () => {};
 
   return (
     <Layout style={styles.container}>
@@ -162,8 +183,23 @@ const HomeScreen = (props) => {
                 borderRadius: 100,
                 elevation: 5,
                 marginTop: 20,
+                position: 'absolute',
+                top: 0,
               }}>
               <Spinner size="large" />
+            </Layout>
+          )}
+          {Object.keys(unsignedTxState).length > 0 && (
+            <Layout style={styles.container} level="1">
+              <Select
+                selectedIndex={testnet}
+                value={testNets[testnet.row]}
+                onSelect={(index) => setTestNet(index)}>
+                <SelectItem title="Goerli" />
+                <SelectItem title="Ethereum Mainnet" />
+                <SelectItem title="Ropsten" />
+                <SelectItem title="Rinkeby" />
+              </Select>
             </Layout>
           )}
           <Layout
@@ -249,10 +285,10 @@ const HomeScreen = (props) => {
                   </Layout>
                 ) : (
                   <Layout>
-                    <Button style={[styles.signBtn, {backgroundColor: '#15348a'}]}>
+                    <Button style={[styles.signBtn, {backgroundColor: '#15348a'}]} disabled>
                       Sign Transaction
                     </Button>
-                    <Button style={styles.signBtn} onPress={handleSignTx}>
+                    <Button style={styles.signBtn} onPress={handleDeployTx}>
                       Deploy Transaction
                     </Button>
                   </Layout>
