@@ -1,7 +1,6 @@
 import React, {useState} from 'react';
 import QRCodeScanner from 'react-native-qrcode-scanner';
 import {TouchableOpacity, Text, StyleSheet, View} from 'react-native';
-import {Layout} from '@ui-kitten/components';
 
 const styles = StyleSheet.create({
   centerText: {
@@ -21,7 +20,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   buttonTouchable: {
-    padding: 36,
+    padding: 40,
   },
 });
 
@@ -33,11 +32,12 @@ const QRScanner = ({onSuccess}) => {
       onRead={onSuccess}
       showMarker
       fadeIn={false}
-      containerStyle={{margin: 25, backgroundColor: '#000'}}
+      containerStyle={{marginTop: 60, backgroundColor: '#000'}}
       bottomContent={
         !dismiss ? (
           <View
             style={{
+              marginTop: 40,
               justifyContent: 'flex-start',
               alignItems: 'center',
             }}>

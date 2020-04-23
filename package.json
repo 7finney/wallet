@@ -12,10 +12,12 @@
   },
   "dependencies": {
     "@eva-design/eva": "^1.4.0",
+    "@react-native-community/async-storage": "^1.9.0",
     "@tradle/react-native-http": "^2.0.1",
     "@ui-kitten/components": "^4.4.1",
     "@ui-kitten/eva-icons": "^5.0.0-alpha.1",
     "assert": "^1.5.0",
+    "axios": "^0.19.2",
     "bn.js": "^5.1.1",
     "browserify-zlib": "^0.1.4",
     "buffer": "^5.5.0",
@@ -30,6 +32,7 @@
     "number-to-bn": "^1.7.0",
     "path-browserify": "0.0.0",
     "process": "^0.11.10",
+    "prop-types": "^15.7.2",
     "punycode": "^1.4.1",
     "querystring-es3": "^0.2.1",
     "randombytes": "latest",
@@ -45,7 +48,12 @@
     "react-native-svg": "^12.0.3",
     "react-native-tcp": "^3.3.2",
     "react-native-udp": "^2.7.0",
+    "react-native-uuid": "^1.4.9",
+    "redux-logger": "^3.0.6",
+    "react-redux": "^7.2.0",
     "readable-stream": "^1.0.33",
+    "redux": "^4.0.5",
+    "redux-thunk": "^2.3.0",
     "stream-browserify": "^1.0.0",
     "string_decoder": "^0.10.31",
     "timers-browserify": "^1.4.2",
@@ -94,7 +102,7 @@
     "fs": "react-native-level-fs",
     "_stream_transform": "readable-stream/transform",
     "_stream_readable": "readable-stream/readable",
-    "_stream_writable": "readable-stream/writable",
+    "_stream_writab le": "readable-stream/writable",
     "_stream_duplex": "readable-stream/duplex",
     "_stream_passthrough": "readable-stream/passthrough",
     "dgram": "react-native-udp",
@@ -102,7 +110,8 @@
     "timers": "timers-browserify",
     "tty": "tty-browserify",
     "vm": "vm-browserify",
-    "tls": false
+    "tls": false,
+    "_stream_writable": "readable-stream/writable"
   },
   "browser": {
     "zlib": "browserify-zlib",
@@ -120,7 +129,7 @@
     "fs": "react-native-level-fs",
     "_stream_transform": "readable-stream/transform",
     "_stream_readable": "readable-stream/readable",
-    "_stream_writable": "readable-stream/writable",
+    "_stream_writab le": "readable-stream/writable",
     "_stream_duplex": "readable-stream/duplex",
     "_stream_passthrough": "readable-stream/passthrough",
     "dgram": "react-native-udp",
@@ -128,6 +137,7 @@
     "timers": "timers-browserify",
     "tty": "tty-browserify",
     "vm": "vm-browserify",
-    "tls": false
+    "tls": false,
+    "_stream_writable": "readable-stream/writable"
   }
 }

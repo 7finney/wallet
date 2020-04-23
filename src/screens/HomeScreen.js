@@ -1,8 +1,12 @@
-import React, {useState} from 'react';
-import {StyleSheet, Dimensions, TouchableOpacity} from 'react-native';
-import {Layout, Text, Button, Card, Icon} from '@ui-kitten/components';
+import React, {useState, useEffect, useRef} from 'react';
+import {StyleSheet, Dimensions, TouchableOpacity, ScrollView, ToastAndroid} from 'react-native';
+import {connect} from 'react-redux';
+import PropTypes from 'prop-types';
+import {Layout, Text, Button, Card, Icon, Input, Spinner} from '@ui-kitten/components';
 import deployUnsignedTx from '../services/sign';
 import QRScanner from '../components/QRScanner';
+import {setUnsignedTx, setRawTx, getAuthToken, setUnsignedTxHash} from '../actions';
+import {getUnsignedTx} from '../actions/utils';
 
 const styles = StyleSheet.create({
   container: {
@@ -37,33 +41,100 @@ const styles = StyleSheet.create({
   },
 });
 
-const HomeScreen = () => {
+const usePrevious = (value) => {
+  const ref = useRef();
+  useEffect(() => {
+    ref.current = value;
+  });
+  return ref.current;
+};
+
+const HomeScreen = (props) => {
+  const {tx, auth} = props;
+
   const [txHash, setTxHash] = useState('');
-  const [unsignedTx, setUnsignedTx] = useState({});
-  const [rawTx, setrawTx] = useState('');
+  const [unsignedTxState, setUnsignedTxState] = useState({});
   const [error, setError] = useState('');
   const [scan, setScan] = useState(false);
+  const [showLoader, setShowLoader] = useState(false);
+
+  // ComponentDidMount
+  useEffect(() => {
+    ToastAndroid.showWithGravity('Fetching AuthToken', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
+    setShowLoader(true);
+    props.getAuthToken();
+  }, []);
+
+  // ComponentDidUpdate for tx.unsignedTxHash. Triggers on tx Hash change
+  useEffect(() => {
+    if (tx.unsignedTxHash !== undefined && tx.unsignedTxHash !== '' && auth.token !== '') {
+      setShowLoader(true);
+      getUnsignedTx(tx.unsignedTxHash, auth.token)
+        .then((unsignedTX) => {
+          if (unsignedTX) {
+            props.setUnsignedTx(JSON.parse(unsignedTX));
+          } else {
+            setShowLoader(false);
+            setError('Invalid Transaction');
+          }
+        })
+        .catch(() => {
+          setShowLoader(false);
+          setError('Error Getting Transaction');
+        });
+    }
+  }, [tx.unsignedTxHash]);
+
+  const prevAuth = usePrevious({auth});
+  // ComponentDidUpdate for auth. Triggers on auth change
+  useEffect(() => {
+    if (auth.token !== '' && auth.token !== undefined && prevAuth.auth.token !== auth.token) {
+      setShowLoader(false);
+      ToastAndroid.showWithGravity('AuthToken Generated', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
+    } else if (auth.token === '' || auth.token === null) {
+      setShowLoader(false);
+      ToastAndroid.showWithGravity(
+        'AuthToken Generation Error. Please try again',
+        ToastAndroid.LONG,
+        ToastAndroid.BOTTOM
+      );
+    }
+  }, [auth]);
+
+  // componentDidUpdate
+  useEffect(() => {
+    console.log(props);
+    if (Object.keys(unsignedTxState).length === 0 && Object.keys(tx.unsignedTx).length > 0) {
+      setShowLoader(false);
+      setUnsignedTxState(tx.unsignedTx);
+    }
+  });
 
   const handleSignTx = () => {
-    console.log('Handling');
     setError('');
-    const {transactionHash, rawTransaction} = deployUnsignedTx(unsignedTx);
+    const {transactionHash, rawTransaction} = deployUnsignedTx(unsignedTxState);
     setTxHash(transactionHash);
-    setrawTx(rawTransaction);
+    props.setRawTx(rawTransaction);
+  };
+
+  const updateUnsignedTx = (key, value) => {
+    // Deep Copying object
+    const newTx = JSON.parse(JSON.stringify(unsignedTxState));
+    newTx[key] = value;
+    setUnsignedTxState(newTx);
   };
 
   const handleScanner = (e) => {
     setScan(false);
     setError('');
-    console.log('Success: ', e.data);
     try {
-      setUnsignedTx(JSON.parse(e.data));
-    } catch (e) {
-      console.log('er', e);
+      props.setUnsignedTxHash(e.data);
+    } catch (err) {
       setError('Invalid Transaction');
       setTimeout(() => setError(''), 5000);
     }
   };
+
   return (
     <Layout style={styles.container}>
       <Layout style={styles.homeHeader}>
@@ -71,58 +142,127 @@ const HomeScreen = () => {
           Wallet
         </Text>
       </Layout>
-      {error !== '' && (
-        <Layout style={styles.error}>
-          <Text style={{textAlign: 'center', color: '#fff', fontSize: 18}}>{error}</Text>
-        </Layout>
-      )}
-      <Layout
-        style={{display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: 5}}>
-        {Object.keys(unsignedTx).length > 0 && (
+      <ScrollView>
+        <Layout
+          style={{
+            width: Dimensions.get('window').width,
+            alignItems: 'center',
+            justifyContent: 'flex-start',
+          }}>
+          {error !== '' && (
+            <Layout style={styles.error}>
+              <Text style={{textAlign: 'center', color: '#fff', fontSize: 18}}>{error}</Text>
+            </Layout>
+          )}
+          {showLoader && (
+            <Layout
+              style={{
+                backgroundColor: '#fff',
+                padding: 10,
+                borderRadius: 100,
+                elevation: 5,
+                marginTop: 20,
+              }}>
+              <Spinner size="large" />
+            </Layout>
+          )}
           <Layout
             style={{
-              marginBottom: 10,
-              padding: 10,
+              display: 'flex',
+              justifyContent: 'space-around',
+              alignItems: 'center',
+              padding: 5,
             }}>
-            <Card>
-              <Text appearance="hint">Transaction To Be Signed: </Text>
-              {Object.keys(unsignedTx).map((k) => (
-                <Text h4 key={k}>
-                  {k}: {unsignedTx[k]}{' '}
-                </Text>
-              ))}
-            </Card>
-          </Layout>
-        )}
-        {txHash.length > 0 && rawTx.length > 0 && (
-          <Layout
-            style={{
-              marginBottom: 10,
-              padding: 10,
-            }}>
-            <Card>
-              <Text appearance="hint">Transaction Hash: </Text>
-              <Text>{txHash}</Text>
-              <Text appearance="hint">Raw Transaction: </Text>
-              <Text> {rawTx}</Text>
-            </Card>
-          </Layout>
-        )}
-        {Object.keys(unsignedTx).length > 0 && (
-          <Layout>
-            {txHash === '' ? (
-              <Button style={styles.signBtn} onPress={handleSignTx}>
-                Sign Transaction
-              </Button>
-            ) : (
-              <Button style={[styles.signBtn, {backgroundColor: '#15348a'}]}>
-                Sign Transaction
-              </Button>
+            {tx && Object.keys(unsignedTxState).length > 0 && (
+              <Layout
+                style={{
+                  marginBottom: 10,
+                  padding: 10,
+                }}>
+                <Card>
+                  <Text appearance="hint">Transaction To Be Signed: </Text>
+                  {tx && unsignedTxState && (
+                    <Layout>
+                      <Layout>
+                        <Input label="From:" value={unsignedTxState.from} disabled />
+                      </Layout>
+                      <Layout>
+                        <Input label="To:" value={unsignedTxState.to} disabled />
+                      </Layout>
+                      <Layout>
+                        <Text h4>Nonce: </Text>
+                        <Input
+                          value={String(unsignedTxState.nonce)}
+                          onChangeText={(e) => updateUnsignedTx('nonce', e)}
+                        />
+                      </Layout>
+                      <Layout>
+                        <Text h4>Gas: </Text>
+                        <Input
+                          value={String(unsignedTxState.gas)}
+                          onChangeText={(e) => updateUnsignedTx('gas', e)}
+                        />
+                      </Layout>
+                      <Layout>
+                        <Input
+                          label="Gas Price"
+                          value={String(unsignedTxState.gasPrice)}
+                          disabled
+                        />
+                      </Layout>
+                      <Layout>
+                        <Text h4>Value: </Text>
+                        <Input
+                          value={String(unsignedTxState.value)}
+                          onChangeText={(e) => updateUnsignedTx('value', e)}
+                        />
+                      </Layout>
+                      <Layout>
+                        <Input label="Data" value={unsignedTxState.data} disabled />
+                      </Layout>
+                    </Layout>
+                  )}
+                </Card>
+              </Layout>
+            )}
+            {tx && txHash.length > 0 && tx.rawTx.length > 0 && (
+              <Layout
+                style={{
+                  marginBottom: 10,
+                  padding: 10,
+                }}>
+                <Card>
+                  <Text appearance="hint">Transaction Hash: </Text>
+                  <Text>{txHash}</Text>
+                  <Text appearance="hint">Raw Transaction: </Text>
+                  <Text> {tx.rawTx}</Text>
+                </Card>
+              </Layout>
+            )}
+            {tx && Object.keys(tx.unsignedTx).length > 0 && (
+              <Layout>
+                {txHash === '' ? (
+                  <Layout>
+                    <Button style={styles.signBtn} onPress={handleSignTx}>
+                      Sign Transaction
+                    </Button>
+                  </Layout>
+                ) : (
+                  <Layout>
+                    <Button style={[styles.signBtn, {backgroundColor: '#15348a'}]}>
+                      Sign Transaction
+                    </Button>
+                    <Button style={styles.signBtn} onPress={handleSignTx}>
+                      Deploy Transaction
+                    </Button>
+                  </Layout>
+                )}
+              </Layout>
             )}
           </Layout>
-        )}
-      </Layout>
-      {scan && <QRScanner onSuccess={handleScanner} />}
+          {scan && <QRScanner onSuccess={handleScanner} />}
+        </Layout>
+      </ScrollView>
       <TouchableOpacity
         style={{
           borderWidth: 0,
@@ -145,8 +285,10 @@ const HomeScreen = () => {
           setScan(!scan);
           setError('');
           setTxHash('');
-          setrawTx('');
-          setUnsignedTx({});
+          setUnsignedTxState({});
+          props.setRawTx('');
+          props.setUnsignedTx({});
+          props.setUnsignedTxHash('');
         }}>
         {scan === false ? (
           <Icon style={styles.icon} fill="#8F9BB3" name="camera" />
@@ -158,4 +300,24 @@ const HomeScreen = () => {
   );
 };
 
-export default HomeScreen;
+HomeScreen.propTypes = {
+  setUnsignedTx: PropTypes.func,
+  setRawTx: PropTypes.func,
+  setUnsignedTxHash: PropTypes.func,
+  getAuthToken: PropTypes.func,
+  // eslint-disable-next-line react/forbid-prop-types
+  auth: PropTypes.any,
+  // eslint-disable-next-line react/forbid-prop-types
+  tx: PropTypes.any,
+};
+
+const mapStateToProps = ({tx, auth}) => {
+  return {
+    tx,
+    auth,
+  };
+};
+
+export default connect(mapStateToProps, {setUnsignedTx, setRawTx, getAuthToken, setUnsignedTxHash})(
+  HomeScreen
+);
