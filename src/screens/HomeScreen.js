@@ -66,7 +66,7 @@ const usePrevious = (value) => {
 const HomeScreen = (props) => {
   const {tx, auth} = props;
 
-  const [networkId, setNetworkId] = useState(1);
+  const [networkId, setNetworkId] = useState(5);
   const [testnet, setTestnet] = useState(null);
   const [txHash, setTxHash] = useState('');
   const [unsignedTxState, setUnsignedTxState] = useState({});
