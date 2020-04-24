@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const testNets = ['Goerli', 'Ethereum Mainnet', 'Ropsten', 'Rinkeby'];
+// const testNetArray = ['Goerli', 'Ethereum Mainnet', 'Ropsten', 'Rinkeby'];
 
 const usePrevious = (value) => {
   const ref = useRef();
@@ -64,11 +64,11 @@ const usePrevious = (value) => {
 
 const HomeScreen = (props) => {
   const {tx, auth} = props;
+  // const [selectedIndex, setSelectedIndex] = React.useState(new IndexPath(0));
 
+  // const [testnet, setTestNet] = useState(new IndexPath(0));
   const [txHash, setTxHash] = useState('');
   const [unsignedTxState, setUnsignedTxState] = useState({});
-  // TODO FIX THIS
-  const [testnet, setTestNet] = useState(IndexPath(0));
   const [error, setError] = useState('');
   const [scan, setScan] = useState(false);
   const [showLoader, setShowLoader] = useState(false);
@@ -123,9 +123,6 @@ const HomeScreen = (props) => {
       setShowLoader(false);
       setUnsignedTxState(tx.unsignedTx);
     }
-    if (showLoader) {
-      setShowLoader(false);
-    }
   });
 
   const handleSignTx = () => {
@@ -145,7 +142,6 @@ const HomeScreen = (props) => {
   const handleScanner = (e) => {
     setScan(false);
     setError('');
-    s;
     try {
       props.setUnsignedTxHash(e.data);
     } catch (err) {
@@ -190,11 +186,14 @@ const HomeScreen = (props) => {
             </Layout>
           )}
           {Object.keys(unsignedTxState).length > 0 && (
-            <Layout style={styles.container} level="1">
+            <Layout level="1">
               <Select
-                selectedIndex={testnet}
-                value={testNets[testnet.row]}
-                onSelect={(index) => setTestNet(index)}>
+                selectedIndex={0}
+                // value={testNets[testnet.row]}
+                onSelect={(index) => {
+                  console.log(index);
+                  // setTestNet(index);
+                }}>
                 <SelectItem title="Goerli" />
                 <SelectItem title="Ethereum Mainnet" />
                 <SelectItem title="Ropsten" />

@@ -1,6 +1,12 @@
 import axios from 'axios';
-import {RAW_TX, SET_AUTH_TOKEN, UNSIGNED_TX, UNSIGNED_TX_HASH} from './types';
-import {getFromAsyncStorage, getToken, setToAsyncStorage, verifyToken} from './utils';
+import {DEPLOY_SIGNED_TX, RAW_TX, SET_AUTH_TOKEN, UNSIGNED_TX, UNSIGNED_TX_HASH} from './types';
+import {
+  deployTransaction,
+  getFromAsyncStorage,
+  getToken,
+  setToAsyncStorage,
+  verifyToken,
+} from './utils';
 
 /**
  *  setUnsignedTx Func -> Sets the Unsigned TX
@@ -53,7 +59,10 @@ export const getAuthToken = () => async (dispatch) => {
   }
 };
 
-export const deploySignedTx = (data) => (dispatch) => {
-  const url = `http://192.168.0.104:4550/api/v0/sendTx` ;
-  axios.post();
+export const deploySignedTx = (rawTx, networkId) => async (dispatch) => {
+  const token = await getFromAsyncStorage('authToken');
+  const result = await deployTransaction(rawTx, networkId, token);
+  if (result) {
+    dispatch({type: DEPLOY_SIGNED_TX, payload: result});
+  }
 };

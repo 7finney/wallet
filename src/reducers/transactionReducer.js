@@ -1,4 +1,4 @@
-import {RAW_TX, UNSIGNED_TX, UNSIGNED_TX_HASH} from '../actions/types';
+import {DEPLOY_SIGNED_TX, RAW_TX, UNSIGNED_TX, UNSIGNED_TX_HASH} from '../actions/types';
 
 const initialState = {
   unsignedTx: {},
@@ -13,6 +13,8 @@ export default (state = initialState, action) => {
       return {...state, unsignedTxHash: action.payload};
     case RAW_TX:
       return {...state, rawTx: action.payload};
+    case DEPLOY_SIGNED_TX:
+      return {...state, txReceipt: action.payload};
     default:
       return {...state};
   }

@@ -81,3 +81,21 @@ export async function getUnsignedTx(txHash, authToken) {
     return false;
   }
 }
+
+export async function deployTransaction(rawTx, networkId, token) {
+  const url = 'http://192.168.0.104:4550/api/v0/sendTx';
+  const req = {
+    networkId,
+    rawTx,
+  };
+  try {
+    const res = await axios.post(url, req, {
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
+    });
+    return res.data;
+  } catch (e) {
+    return e.response;
+  }
+}
