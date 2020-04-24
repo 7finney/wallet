@@ -2,21 +2,10 @@ import React, {useState, useEffect, useRef} from 'react';
 import {StyleSheet, Dimensions, TouchableOpacity, ScrollView, ToastAndroid} from 'react-native';
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
-import {
-  Layout,
-  Text,
-  Button,
-  Card,
-  Icon,
-  Input,
-  Spinner,
-  Select,
-  SelectItem,
-  IndexPath,
-} from '@ui-kitten/components';
+import {Layout, Text, Button, Card, Icon, Input, Spinner, Select} from '@ui-kitten/components';
 import deployUnsignedTx from '../services/sign';
 import QRScanner from '../components/QRScanner';
-import {setUnsignedTx, setRawTx, getAuthToken, setUnsignedTxHash} from '../actions';
+import {setUnsignedTx, setRawTx, getAuthToken, setUnsignedTxHash, deploySignedTx} from '../actions';
 import {getUnsignedTx} from '../actions/utils';
 
 const styles = StyleSheet.create({
@@ -52,7 +41,19 @@ const styles = StyleSheet.create({
   },
 });
 
-// const testNetArray = ['Goerli', 'Ethereum Mainnet', 'Ropsten', 'Rinkeby'];
+const testNetArray = [
+  {text: 'Ethereum Mainnet'},
+  {text: 'Goerli'},
+  {text: 'Ropsten'},
+  {text: 'Rinkeby'},
+];
+
+const networkIdList = {
+  'Ethereum Mainnet': 1,
+  Ropsten: 3,
+  Rinkeby: 4,
+  Goerli: 5,
+};
 
 const usePrevious = (value) => {
   const ref = useRef();
@@ -64,9 +65,9 @@ const usePrevious = (value) => {
 
 const HomeScreen = (props) => {
   const {tx, auth} = props;
-  // const [selectedIndex, setSelectedIndex] = React.useState(new IndexPath(0));
 
-  // const [testnet, setTestNet] = useState(new IndexPath(0));
+  const [networkId, setNetworkId] = useState(1);
+  const [testnet, setTestnet] = useState(null);
   const [txHash, setTxHash] = useState('');
   const [unsignedTxState, setUnsignedTxState] = useState({});
   const [error, setError] = useState('');
@@ -116,6 +117,12 @@ const HomeScreen = (props) => {
     }
   }, [auth]);
 
+  useEffect(() => {
+    if (testnet !== null) {
+      setNetworkId(networkIdList[testnet.text]);
+    }
+  }, [testnet]);
+
   // componentDidUpdate
   useEffect(() => {
     console.log(props);
@@ -150,7 +157,13 @@ const HomeScreen = (props) => {
     }
   };
 
-  const handleDeployTx = () => {};
+  const handleDeployTx = () => {
+    if (tx.rawTx !== '' && auth.token !== '') {
+      props.deploySignedTx(tx.rawTx, networkId, auth.token);
+    } else {
+      setError('Maybe Transaction not signed or no auth token generated');
+    }
+  };
 
   return (
     <Layout style={styles.container}>
@@ -186,19 +199,20 @@ const HomeScreen = (props) => {
             </Layout>
           )}
           {Object.keys(unsignedTxState).length > 0 && (
-            <Layout level="1">
+            <Layout
+              level="1"
+              style={{
+                // minHeight: 228,
+                width: '100%',
+                margin: 5,
+              }}>
               <Select
-                selectedIndex={0}
-                // value={testNets[testnet.row]}
-                onSelect={(index) => {
-                  console.log(index);
-                  // setTestNet(index);
-                }}>
-                <SelectItem title="Goerli" />
-                <SelectItem title="Ethereum Mainnet" />
-                <SelectItem title="Ropsten" />
-                <SelectItem title="Rinkeby" />
-              </Select>
+                label="Select Network"
+                data={testNetArray}
+                placeholder="Goerli"
+                selectedOption={testnet}
+                onSelect={setTestnet}
+              />
             </Layout>
           )}
           <Layout
@@ -334,12 +348,12 @@ const HomeScreen = (props) => {
     </Layout>
   );
 };
-
 HomeScreen.propTypes = {
   setUnsignedTx: PropTypes.func,
   setRawTx: PropTypes.func,
   setUnsignedTxHash: PropTypes.func,
   getAuthToken: PropTypes.func,
+  deploySignedTx: PropTypes.func,
   // eslint-disable-next-line react/forbid-prop-types
   auth: PropTypes.any,
   // eslint-disable-next-line react/forbid-prop-types
@@ -353,6 +367,10 @@ const mapStateToProps = ({tx, auth}) => {
   };
 };
 
-export default connect(mapStateToProps, {setUnsignedTx, setRawTx, getAuthToken, setUnsignedTxHash})(
-  HomeScreen
-);
+export default connect(mapStateToProps, {
+  setUnsignedTx,
+  setRawTx,
+  getAuthToken,
+  setUnsignedTxHash,
+  deploySignedTx,
+})(HomeScreen);

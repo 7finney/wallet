@@ -32,6 +32,9 @@ export const setRawTx = (data) => (dispatch) => {
   dispatch({type: RAW_TX, payload: data});
 };
 
+/**
+ *  getAuthToken -> Sets the auth token at the beginning
+ */
 export const getAuthToken = () => async (dispatch) => {
   let token = await getFromAsyncStorage('authToken');
   if (token) {
@@ -59,6 +62,11 @@ export const getAuthToken = () => async (dispatch) => {
   }
 };
 
+/**
+ * deploySignedTx -> Deploys the signed tx and sets the Tx Receipt
+ * @param rawTx
+ * @param networkId
+ */
 export const deploySignedTx = (rawTx, networkId) => async (dispatch) => {
   const token = await getFromAsyncStorage('authToken');
   const result = await deployTransaction(rawTx, networkId, token);
