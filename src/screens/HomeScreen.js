@@ -6,7 +6,7 @@ import {Layout, Text, Button, Card, Icon, Input, Spinner, Select} from '@ui-kitt
 import deployUnsignedTx from '../services/sign';
 import QRScanner from '../components/QRScanner';
 import {setUnsignedTx, setRawTx, getAuthToken, setUnsignedTxHash, deploySignedTx} from '../actions';
-import {getUnsignedTx} from '../actions/utils';
+import {getUnsignedTx, setToAsyncStorage, getFromAsyncStorage} from '../actions/utils';
 
 const styles = StyleSheet.create({
   container: {
@@ -70,6 +70,7 @@ const HomeScreen = (props) => {
   const [testnet, setTestnet] = useState(null);
   const [txHash, setTxHash] = useState('');
   const [unsignedTxState, setUnsignedTxState] = useState({});
+  const [pvtKey, setPvtKey] = useState('');
   const [error, setError] = useState('');
   const [scan, setScan] = useState(false);
   const [showLoader, setShowLoader] = useState(false);
@@ -144,13 +145,26 @@ const HomeScreen = (props) => {
     }
   });
 
-  const handleSignTx = () => {
+  const handleSignTx = async () => {
     setError('');
-    // For signing With private key.
-    // Not to be confused with deploying unsigned Tx
-    const {transactionHash, rawTransaction} = deployUnsignedTx(unsignedTxState);
-    setTxHash(transactionHash);
-    props.setRawTx(rawTransaction);
+    const privateKey = await getFromAsyncStorage('pvtKey');
+    if (!privateKey) {
+      setError('No Private Key Set');
+    } else if (privateKey !== '') {
+      // For signing With private key.
+      // Not to be confused with deploying unsigned Tx
+      const {transactionHash, rawTransaction, Error} = deployUnsignedTx(
+        unsignedTxState,
+        privateKey,
+        networkId
+      );
+      if (Error) {
+        setError(Error.message);
+      } else {
+        setTxHash(transactionHash);
+        props.setRawTx(rawTransaction);
+      }
+    }
   };
 
   const updateUnsignedTx = (key, value) => {
@@ -182,6 +196,15 @@ const HomeScreen = (props) => {
     }
   };
 
+  const handleAddPvtKey = async () => {
+    const result = await setToAsyncStorage('pvtKey', pvtKey);
+    if (result) {
+      setError('Successfully Set');
+    } else {
+      setError('Error setting private key');
+    }
+  };
+
   return (
     <Layout style={styles.container}>
       <Layout style={styles.homeHeader}>
@@ -206,6 +229,19 @@ const HomeScreen = (props) => {
           <Text style={{textAlign: 'center', color: '#fff', fontSize: 18}}>{error}</Text>
         </Layout>
       )}
+      <Layout
+        style={{
+          width: '95%',
+          margin: 5,
+        }}>
+        <Input
+          label="Private Key:"
+          placeholder="Enter Private key without 0x"
+          value={pvtKey}
+          onChangeText={(e) => setPvtKey(e)}
+        />
+        <Button onPress={(e) => handleAddPvtKey(e)}>Set Private Key</Button>
+      </Layout>
       <ScrollView>
         <Layout
           style={{
@@ -217,8 +253,7 @@ const HomeScreen = (props) => {
             <Layout
               level="1"
               style={{
-                // minHeight: 228,
-                width: '100%',
+                width: '95%',
                 margin: 5,
               }}>
               <Select
@@ -289,7 +324,7 @@ const HomeScreen = (props) => {
                 </Card>
               </Layout>
             )}
-            {tx && txHash.length > 0 && tx.rawTx.length > 0 && (
+            {tx && txHash !== '' && tx.rawTx !== '' && (
               <Layout
                 style={{
                   marginBottom: 10,
