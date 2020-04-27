@@ -69,8 +69,13 @@ export const getAuthToken = () => async (dispatch) => {
  */
 export const deploySignedTx = (rawTx, networkId) => async (dispatch) => {
   const token = await getFromAsyncStorage('authToken');
-  const result = await deployTransaction(rawTx, networkId, token);
+  let result;
+  try {
+    result = await deployTransaction(rawTx, networkId, token);
+  } catch (e) {
+    result = e;
+  }
   if (result) {
-    dispatch({type: DEPLOY_SIGNED_TX, payload: result});
+    dispatch({type: DEPLOY_SIGNED_TX, payload: result.data});
   }
 };

@@ -3,6 +3,7 @@ import {DEPLOY_SIGNED_TX, RAW_TX, UNSIGNED_TX, UNSIGNED_TX_HASH} from '../action
 const initialState = {
   unsignedTx: {},
   rawTx: '',
+  txReceipt: {},
 };
 
 export default (state = initialState, action) => {

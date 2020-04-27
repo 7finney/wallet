@@ -101,6 +101,18 @@ const HomeScreen = (props) => {
     }
   }, [tx.unsignedTxHash]);
 
+  // ComponentDidUpdate for txReceipt. Triggers on tx.txReceipt change
+  useEffect(() => {
+    if (tx.txReceipt.Error) {
+      const msg = tx.txReceipt.Error.split('=').slice(-1)[0];
+      setError(msg);
+    }
+    if (tx.txReceipt.Status) {
+      setError(tx.txReceipt.Status);
+    }
+    setShowLoader(false);
+  }, [tx.txReceipt]);
+
   const prevAuth = usePrevious({auth});
   // ComponentDidUpdate for auth. Triggers on auth change
   useEffect(() => {
@@ -134,6 +146,8 @@ const HomeScreen = (props) => {
 
   const handleSignTx = () => {
     setError('');
+    // For signing With private key.
+    // Not to be confused with deploying unsigned Tx
     const {transactionHash, rawTransaction} = deployUnsignedTx(unsignedTxState);
     setTxHash(transactionHash);
     props.setRawTx(rawTransaction);
@@ -150,6 +164,7 @@ const HomeScreen = (props) => {
     setScan(false);
     setError('');
     try {
+      setShowLoader(true);
       props.setUnsignedTxHash(e.data);
     } catch (err) {
       setError('Invalid Transaction');
@@ -159,6 +174,8 @@ const HomeScreen = (props) => {
 
   const handleDeployTx = () => {
     if (tx.rawTx !== '' && auth.token !== '') {
+      setError('');
+      setShowLoader(true);
       props.deploySignedTx(tx.rawTx, networkId, auth.token);
     } else {
       setError('Maybe Transaction not signed or no auth token generated');
@@ -172,6 +189,23 @@ const HomeScreen = (props) => {
           Wallet
         </Text>
       </Layout>
+      {showLoader && (
+        <Layout
+          style={{
+            backgroundColor: '#fff',
+            padding: 10,
+            borderRadius: 100,
+            elevation: 5,
+            marginTop: 20,
+          }}>
+          <Spinner size="large" />
+        </Layout>
+      )}
+      {error !== '' && (
+        <Layout style={styles.error}>
+          <Text style={{textAlign: 'center', color: '#fff', fontSize: 18}}>{error}</Text>
+        </Layout>
+      )}
       <ScrollView>
         <Layout
           style={{
@@ -179,25 +213,6 @@ const HomeScreen = (props) => {
             alignItems: 'center',
             justifyContent: 'flex-start',
           }}>
-          {error !== '' && (
-            <Layout style={styles.error}>
-              <Text style={{textAlign: 'center', color: '#fff', fontSize: 18}}>{error}</Text>
-            </Layout>
-          )}
-          {showLoader && (
-            <Layout
-              style={{
-                backgroundColor: '#fff',
-                padding: 10,
-                borderRadius: 100,
-                elevation: 5,
-                marginTop: 20,
-                position: 'absolute',
-                top: 0,
-              }}>
-              <Spinner size="large" />
-            </Layout>
-          )}
           {Object.keys(unsignedTxState).length > 0 && (
             <Layout
               level="1"

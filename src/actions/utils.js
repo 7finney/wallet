@@ -102,8 +102,7 @@ export async function deployTransaction(rawTx, networkId, token) {
       },
       json: true,
     });
-    console.log(res.data);
-    return res.data.Error;
+    return res;
   } catch (e) {
     return e.response;
   }
