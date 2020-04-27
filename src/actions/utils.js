@@ -27,7 +27,7 @@ export function getToken() {
 }
 
 /**
- *
+ * verifies token passed to it
  * @param authToken{string}
  * @returns {Promise<boolean>}
  */
@@ -42,7 +42,7 @@ export async function verifyToken(authToken) {
 }
 
 /**
- *
+ * get value of the key from async storage
  * @param key
  * @returns {Promise<string>}
  */
@@ -55,7 +55,7 @@ export async function getFromAsyncStorage(key) {
 }
 
 /**
- *
+ * sets the key and value to async storage
  * @param key
  * @param value
  * @returns {Promise<boolean>}
@@ -70,6 +70,21 @@ export async function setToAsyncStorage(key, value) {
 }
 
 /**
+ * removes key with value from async storage
+ * @param key
+ * @returns {Promise<boolean>}
+ */
+export async function removeFromAsyncStorage(key) {
+  try {
+    await AsyncStorage.removeItem(key);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+/**
+ * return unsignedTx from the server
  * @param txHash
  * @param authToken
  * @returns {Promise<boolean|*>}
@@ -88,6 +103,13 @@ export async function getUnsignedTx(txHash, authToken) {
   }
 }
 
+/**
+ * sends the signed transaction to server and return tx Receipt
+ * @param rawTx
+ * @param networkId
+ * @param token
+ * @returns {Promise<AxiosResponse<any>|any>}
+ */
 export async function deployTransaction(rawTx, networkId, token) {
   const url = 'http://192.168.0.104:4550/api/v0/sendTx';
   const req = {
