@@ -11,7 +11,7 @@ const formatters = require('web3-core-helpers').formatters;
 const keythereum = require('keythereum');
 
 // sign an unsigned raw transaction and deploy
-function deployUnsignedTx(tx: any, privateKey?: any, testnetId?: any) {
+export function deployUnsignedTx(tx: any, privateKey?: any, testnetId?: any) {
   try {
     const txData = formatters.inputTransactionFormatter(tx);
     // TODO: this method should not work for ganache and prysm and throw error
@@ -50,22 +50,33 @@ function extractPvtKey(keyObject: any, pswd: string) {
   return keythereum.recover(pswd, keyObject);
 }
 
-// create keypair
-function createKeyPair(path: string, pswd: string) {
-  const params = {keyBytes: 32, ivBytes: 16};
-  const bareKey = keythereum.create(params);
-  const options = {
-    kdf: 'scrypt',
-    cipher: 'aes-128-ctr',
-  };
-  const keyObject = keythereum.dump(pswd, bareKey.privateKey, bareKey.salt, bareKey.iv, options);
-  const key = extractPvtKey(keyObject, pswd);
-  return setToAsyncStorage(keyObject.address, key);
+// create keypair and saves to AsyncStorage for now
+export async function createKeyPair(pswd: string) {
+  console.log('Function Called CreateKeyPair', pswd);
+  try {
+    const params = {keyBytes: 32, ivBytes: 16};
+    console.log('PArams: ', params);
+    const bareKey = keythereum.create(params);
+    const options = {
+      kdf: 'scrypt',
+      cipher: 'aes-128-ctr',
+    };
+    console.log('BareKey: ', bareKey);
+    const keyObject = keythereum.dump(pswd, bareKey.privateKey, bareKey.salt, bareKey.iv, options);
+    console.log('KeyObject: ', keyObject);
+    const key = extractPvtKey(keyObject, pswd);
+    const res = await setToAsyncStorage(keyObject.address, key);
+    if (res) {
+      return keyObject.address;
+    }
+    return false;
+  } catch (e) {
+    console.error(e);
+    return false;
+  }
 }
 
 // delete privateKey against address
-function deleteKeyPair(publicKey) {
+export function deleteKeyPair(publicKey) {
   return removeFromAsyncStorage(publicKey);
 }
-
-export default deployUnsignedTx;

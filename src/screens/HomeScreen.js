@@ -3,7 +3,7 @@ import {StyleSheet, Dimensions, TouchableOpacity, ScrollView, ToastAndroid} from
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
 import {Layout, Text, Button, Card, Icon, Input, Spinner, Select} from '@ui-kitten/components';
-import deployUnsignedTx from '../services/sign';
+import {deployUnsignedTx, createKeyPair} from '../services/sign';
 import QRScanner from '../components/QRScanner';
 import {setUnsignedTx, setRawTx, getAuthToken, setUnsignedTxHash, deploySignedTx} from '../actions';
 import {getUnsignedTx, setToAsyncStorage, getFromAsyncStorage} from '../actions/utils';
@@ -71,6 +71,7 @@ const HomeScreen = (props) => {
   const [txHash, setTxHash] = useState('');
   const [unsignedTxState, setUnsignedTxState] = useState({});
   const [pvtKey, setPvtKey] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [scan, setScan] = useState(false);
   const [showLoader, setShowLoader] = useState(false);
@@ -143,6 +144,9 @@ const HomeScreen = (props) => {
       setShowLoader(false);
       setUnsignedTxState(tx.unsignedTx);
     }
+    if (password !== '') {
+      setPassword('');
+    }
   });
 
   const handleSignTx = async () => {
@@ -205,6 +209,20 @@ const HomeScreen = (props) => {
     }
   };
 
+  const handleGenerateKeyPair = async () => {
+    const res = await createKeyPair("");
+    if (res) {
+      const savedPvtKey = await getFromAsyncStorage(res);
+      if (savedPvtKey) {
+        setPvtKey(savedPvtKey);
+      } else {
+        setError('No Pvt Key Found');
+      }
+    } else {
+      setError('Error Generating pvt Key');
+    }
+  };
+
   return (
     <Layout style={styles.container}>
       <Layout style={styles.homeHeader}>
@@ -241,6 +259,7 @@ const HomeScreen = (props) => {
           onChangeText={(e) => setPvtKey(e)}
         />
         <Button onPress={(e) => handleAddPvtKey(e)}>Set Private Key</Button>
+        <Button onPress={handleGenerateKeyPair}>Generate Account Key/Pair</Button>
       </Layout>
       <ScrollView>
         <Layout
