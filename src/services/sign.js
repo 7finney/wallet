@@ -52,20 +52,17 @@ function extractPvtKey(keyObject: any, pswd: string) {
 
 // create keypair and saves to AsyncStorage for now
 export async function createKeyPair(pswd: string) {
-  console.log('Function Called CreateKeyPair', pswd);
   try {
     const params = {keyBytes: 32, ivBytes: 16};
-    console.log('PArams: ', params);
     const bareKey = keythereum.create(params);
     const options = {
       kdf: 'scrypt',
       cipher: 'aes-128-ctr',
     };
-    console.log('BareKey: ', bareKey);
     const keyObject = keythereum.dump(pswd, bareKey.privateKey, bareKey.salt, bareKey.iv, options);
-    console.log('KeyObject: ', keyObject);
     const key = extractPvtKey(keyObject, pswd);
-    const res = await setToAsyncStorage(keyObject.address, key);
+    const res = await setToAsyncStorage('pvtKey', key);
+    await setToAsyncStorage('publicKey', keyObject.address);
     if (res) {
       return keyObject.address;
     }

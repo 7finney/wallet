@@ -2,8 +2,18 @@ import React, {useState, useEffect, useRef} from 'react';
 import {StyleSheet, Dimensions, TouchableOpacity, ScrollView, ToastAndroid} from 'react-native';
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
-import {Layout, Text, Button, Card, Icon, Input, Spinner, Select} from '@ui-kitten/components';
-import {deployUnsignedTx, createKeyPair} from '../services/sign';
+import {
+  Layout,
+  Text,
+  Button,
+  Card,
+  Icon,
+  Input,
+  Spinner,
+  Select,
+  Modal,
+} from '@ui-kitten/components';
+import {deployUnsignedTx, createKeyPair, deleteKeyPair} from '../services/sign';
 import QRScanner from '../components/QRScanner';
 import {setUnsignedTx, setRawTx, getAuthToken, setUnsignedTxHash, deploySignedTx} from '../actions';
 import {getUnsignedTx, setToAsyncStorage, getFromAsyncStorage} from '../actions/utils';
@@ -72,15 +82,23 @@ const HomeScreen = (props) => {
   const [unsignedTxState, setUnsignedTxState] = useState({});
   const [pvtKey, setPvtKey] = useState('');
   const [password, setPassword] = useState('');
+  const [showModal, setShowModal] = useState('');
   const [error, setError] = useState('');
   const [scan, setScan] = useState(false);
   const [showLoader, setShowLoader] = useState(false);
 
   // ComponentDidMount
-  useEffect(() => {
+  useEffect(async () => {
     ToastAndroid.showWithGravity('Fetching AuthToken', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
     setShowLoader(true);
     props.getAuthToken();
+    const key = await getFromAsyncStorage('pvtKey');
+    if (key) {
+      setPvtKey(key);
+    }
+    if (password) {
+      setPassword('');
+    }
   }, []);
 
   // ComponentDidUpdate for tx.unsignedTxHash. Triggers on tx Hash change
@@ -143,9 +161,6 @@ const HomeScreen = (props) => {
     if (Object.keys(unsignedTxState).length === 0 && Object.keys(tx.unsignedTx).length > 0) {
       setShowLoader(false);
       setUnsignedTxState(tx.unsignedTx);
-    }
-    if (password !== '') {
-      setPassword('');
     }
   });
 
@@ -210,7 +225,7 @@ const HomeScreen = (props) => {
   };
 
   const handleGenerateKeyPair = async () => {
-    const res = await createKeyPair("");
+    const res = await createKeyPair('');
     if (res) {
       const savedPvtKey = await getFromAsyncStorage(res);
       if (savedPvtKey) {
@@ -220,6 +235,17 @@ const HomeScreen = (props) => {
       }
     } else {
       setError('Error Generating pvt Key');
+    }
+  };
+
+  const handleDeletePrivateKey = async () => {
+    try {
+      const res = await deleteKeyPair('pvtKey');
+      if (res) {
+        setError('Private Key Deleted Successfully');
+      }
+    } catch (e) {
+      setError('Unable To delete Private Key');
     }
   };
 
@@ -259,7 +285,35 @@ const HomeScreen = (props) => {
           onChangeText={(e) => setPvtKey(e)}
         />
         <Button onPress={(e) => handleAddPvtKey(e)}>Set Private Key</Button>
-        <Button onPress={handleGenerateKeyPair}>Generate Account Key/Pair</Button>
+        {pvtKey.length > 0 ? (
+          <Layout>
+            <Button onPress={() => setShowModal(true)} disabled>
+              Generate Account Key/Pair
+            </Button>
+            <Button onPress={handleDeletePrivateKey}>Delete Current Account</Button>
+          </Layout>
+        ) : (
+          <Layout>
+            <Button onPress={() => setShowModal(true)}>Generate Account Key/Pair</Button>
+            <Button onPress={handleDeletePrivateKey} disabled>
+              Delete Current Account
+            </Button>
+          </Layout>
+        )}
+        {showModal && (
+          <Modal visible={showModal} backdropStyle={{backgroundColor: 'rgba(0,0,0,0.8)'}}>
+            <Layout level="3">
+              <Layout>
+                <Text h4>Enter Password For Private Key</Text>
+                <Input value={password} onChangeText={(e) => setPassword(e)} />
+              </Layout>
+              <Layout>
+                <Button onPress={() => setShowModal(false)}>Cancel </Button>
+                <Button onPress={handleGenerateKeyPair}> Generate </Button>
+              </Layout>
+            </Layout>
+          </Modal>
+        )}
       </Layout>
       <ScrollView>
         <Layout
