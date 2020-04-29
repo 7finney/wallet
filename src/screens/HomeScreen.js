@@ -76,6 +76,7 @@ const usePrevious = (value) => {
 const HomeScreen = (props) => {
   const {tx, auth} = props;
 
+  // Component State
   const [networkId, setNetworkId] = useState(5);
   const [testnet, setTestnet] = useState(null);
   const [txHash, setTxHash] = useState('');
@@ -86,6 +87,7 @@ const HomeScreen = (props) => {
   const [error, setError] = useState('');
   const [scan, setScan] = useState(false);
   const [showLoader, setShowLoader] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // ComponentDidMount
   useEffect(() => {
@@ -310,6 +312,7 @@ const HomeScreen = (props) => {
               style={{
                 padding: 25,
                 display: 'flex',
+                width: Dimensions.get('window').width - 10,
               }}>
               <Layout
                 style={{
@@ -324,14 +327,40 @@ const HomeScreen = (props) => {
                   h1>
                   Enter Password For Private Key
                 </Text>
-                <Input value={String(password)} onChangeText={(e) => setPassword(e)} />
+                <Layout>
+                  <Input
+                    style={{
+                      padding: 0,
+                      width: '100%',
+                      margin: 0,
+                      border: 'none',
+                    }}
+                    secureTextEntry={!showPassword}
+                    value={String(password)}
+                    icon={() => (
+                      <TouchableOpacity
+                        onPress={() => setShowPassword(!showPassword)}
+                        style={{
+                          backgroundColor: 'transparent',
+                          border: 'none',
+                        }}>
+                        {!showPassword ? (
+                          <Icon style={styles.icon} name="eye-outline" fill="#8F9BB3" />
+                        ) : (
+                          <Icon style={styles.icon} name="eye-off-outline" fill="#8F9BB3" />
+                        )}
+                      </TouchableOpacity>
+                    )}
+                    onChangeText={(e) => setPassword(e)}
+                  />
+                </Layout>
               </Layout>
               <Layout
                 style={{
                   display: 'flex',
                   flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  width: 200,
+                  justifyContent: 'space-around',
+                  width: '100%',
                   backgroundColor: 'transparent',
                 }}>
                 <Button
