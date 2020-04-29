@@ -223,6 +223,7 @@ const HomeScreen = (props) => {
   const handleAddPvtKey = async () => {
     const result = await setToAsyncStorage('pvtKey', pvtKey);
     if (result) {
+      setPvtKey(result);
       setError('Successfully Set');
     } else {
       setError('Error setting private key');
@@ -230,23 +231,27 @@ const HomeScreen = (props) => {
   };
 
   const handleGenerateKeyPair = async () => {
+    setShowLoader(true);
     const res = await createKeyPair('');
     if (res) {
-      const savedPvtKey = await getFromAsyncStorage(res);
+      const savedPvtKey = await getFromAsyncStorage('pvtKey');
       if (savedPvtKey) {
         setPvtKey(savedPvtKey);
+        setError('');
       } else {
         setError('No Pvt Key Found');
       }
     } else {
       setError('Error Generating pvt Key');
     }
+    setShowLoader(false);
   };
 
   const handleDeletePrivateKey = async () => {
     try {
       const res = await deleteKeyPair('pvtKey');
       if (res) {
+        setPvtKey('');
         setError('Private Key Deleted Successfully');
       }
     } catch (e) {
@@ -269,6 +274,8 @@ const HomeScreen = (props) => {
             borderRadius: 100,
             elevation: 5,
             marginTop: 20,
+            position: 'absolute',
+            top: 50,
           }}>
           <Spinner size="large" />
         </Layout>

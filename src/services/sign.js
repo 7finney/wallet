@@ -47,7 +47,7 @@ export function deployUnsignedTx(tx: any, privateKey?: any, testnetId?: any) {
 
 // extract privateKey against address
 function extractPvtKey(keyObject: any, pswd: string) {
-  return keythereum.recover(pswd, keyObject);
+  return keythereum.recover(pswd, keyObject).toString('hex');
 }
 
 // create keypair and saves to AsyncStorage for now
