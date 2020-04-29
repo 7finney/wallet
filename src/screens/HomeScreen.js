@@ -88,17 +88,20 @@ const HomeScreen = (props) => {
   const [showLoader, setShowLoader] = useState(false);
 
   // ComponentDidMount
-  useEffect(async () => {
+  useEffect(() => {
     ToastAndroid.showWithGravity('Fetching AuthToken', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
     setShowLoader(true);
     props.getAuthToken();
-    const key = await getFromAsyncStorage('pvtKey');
-    if (key) {
-      setPvtKey(key);
-    }
-    if (password) {
-      setPassword('');
-    }
+    // Get Private key from async storage on component mount
+    (async function () {
+      const key = await getFromAsyncStorage('pvtKey');
+      if (key) {
+        setPvtKey(key);
+      }
+      if (password) {
+        setPassword('');
+      }
+    })();
   }, []);
 
   // ComponentDidUpdate for tx.unsignedTxHash. Triggers on tx Hash change
@@ -300,21 +303,55 @@ const HomeScreen = (props) => {
             </Button>
           </Layout>
         )}
-        {
-          showModal &&
+        {showModal && (
           <Modal visible={showModal} backdropStyle={{backgroundColor: 'rgba(0,0,0,0.8)'}}>
-            <Layout level="3">
-              <Layout>
-                <Text>Enter Password For Private Key</Text>
-                <Input value={password} onChangeText={(e) => setPassword(e)} />
+            <Layout
+              level="3"
+              style={{
+                padding: 25,
+                display: 'flex',
+              }}>
+              <Layout
+                style={{
+                  marginVertical: 20,
+                  backgroundColor: 'transparent',
+                }}>
+                <Text
+                  style={{
+                    color: '#252525',
+                    marginVertical: 5,
+                  }}
+                  h1>
+                  Enter Password For Private Key
+                </Text>
+                <Input value={String(password)} onChangeText={(e) => setPassword(e)} />
               </Layout>
-              <Layout>
-                <Button onPress={() => setShowModal(false)}>Cancel</Button>
-                <Button onPress={handleGenerateKeyPair}>Generate</Button>
+              <Layout
+                style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  width: 200,
+                  backgroundColor: 'transparent',
+                }}>
+                <Button
+                  onPress={() => {
+                    setPassword('');
+                    setShowModal(false);
+                  }}>
+                  Cancel
+                </Button>
+                <Button
+                  onPress={() => {
+                    handleGenerateKeyPair();
+                    setShowModal(false);
+                  }}>
+                  Generate
+                </Button>
               </Layout>
             </Layout>
           </Modal>
-        }
+        )}
       </Layout>
       <ScrollView>
         <Layout
