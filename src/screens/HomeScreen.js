@@ -82,7 +82,7 @@ const HomeScreen = (props) => {
   const [unsignedTxState, setUnsignedTxState] = useState({});
   const [pvtKey, setPvtKey] = useState('');
   const [password, setPassword] = useState('');
-  const [showModal, setShowModal] = useState('');
+  const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState('');
   const [scan, setScan] = useState(false);
   const [showLoader, setShowLoader] = useState(false);
@@ -300,20 +300,21 @@ const HomeScreen = (props) => {
             </Button>
           </Layout>
         )}
-        {showModal && (
+        {
+          showModal &&
           <Modal visible={showModal} backdropStyle={{backgroundColor: 'rgba(0,0,0,0.8)'}}>
             <Layout level="3">
               <Layout>
-                <Text h4>Enter Password For Private Key</Text>
+                <Text>Enter Password For Private Key</Text>
                 <Input value={password} onChangeText={(e) => setPassword(e)} />
               </Layout>
               <Layout>
-                <Button onPress={() => setShowModal(false)}>Cancel </Button>
-                <Button onPress={handleGenerateKeyPair}> Generate </Button>
+                <Button onPress={() => setShowModal(false)}>Cancel</Button>
+                <Button onPress={handleGenerateKeyPair}>Generate</Button>
               </Layout>
             </Layout>
           </Modal>
-        )}
+        }
       </Layout>
       <ScrollView>
         <Layout
