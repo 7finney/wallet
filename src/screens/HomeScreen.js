@@ -193,6 +193,7 @@ const HomeScreen = (props) => {
   };
 
   const updateUnsignedTx = (key, value) => {
+    setTxHash('');
     // Deep Copying object
     const newTx = JSON.parse(JSON.stringify(unsignedTxState));
     newTx[key] = value;

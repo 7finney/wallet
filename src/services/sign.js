@@ -10,12 +10,20 @@ const EthereumTx = require('ethereumjs-tx').Transaction;
 const formatters = require('web3-core-helpers').formatters;
 const keythereum = require('keythereum');
 
+// chainList for ethereumjs-tx
+const chainList = {
+  1: 'mainnet',
+  3: 'ropsten',
+  4: 'rinkeby',
+  5: 'goerli',
+};
+
 // sign an unsigned raw transaction and deploy
 export function deployUnsignedTx(tx: any, privateKey?: any, testnetId?: any) {
   try {
     const txData = formatters.inputTransactionFormatter(tx);
     // TODO: this method should not work for ganache and prysm and throw error
-    const chainId = Number(testnetId) === 5 ? 6284 : Number(testnetId);
+    const chainId = Number(testnetId) === 5 ? 5 : Number(testnetId);
     const unsignedTransaction = new EthereumTx(
       {
         from: txData.from || '0x',
@@ -25,8 +33,9 @@ export function deployUnsignedTx(tx: any, privateKey?: any, testnetId?: any) {
         to: txData.to || '0x',
         value: txData.value || '0x',
         data: txData.data || '0x',
+        chainId,
       },
-      {chain: chainId}
+      {chain: chainList[Number(testnetId)]}
     );
     const pvtk = Buffer.from(privateKey, 'hex');
     unsignedTransaction.sign(pvtk);
