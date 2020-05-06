@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import QRCodeScanner from 'react-native-qrcode-scanner';
-import {TouchableOpacity, Text, StyleSheet, View} from 'react-native';
+import {TouchableOpacity, Text, StyleSheet, View, Dimensions} from 'react-native';
 
 const styles = StyleSheet.create({
   centerText: {
@@ -32,12 +32,13 @@ const QRScanner = ({onSuccess}) => {
       onRead={onSuccess}
       showMarker
       fadeIn={false}
-      containerStyle={{marginTop: 60, backgroundColor: '#000'}}
+      containerStyle={{
+        backgroundColor: '#000',
+      }}
       bottomContent={
         !dismiss ? (
           <View
             style={{
-              marginTop: 40,
               justifyContent: 'flex-start',
               alignItems: 'center',
             }}>

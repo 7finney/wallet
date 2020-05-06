@@ -1,5 +1,12 @@
-import {RAW_TX, SET_AUTH_TOKEN, UNSIGNED_TX, UNSIGNED_TX_HASH} from './types';
-import {getFromAsyncStorage, getToken, setToAsyncStorage, verifyToken} from './utils';
+import axios from 'axios';
+import {DEPLOY_SIGNED_TX, RAW_TX, SET_AUTH_TOKEN, UNSIGNED_TX, UNSIGNED_TX_HASH} from './types';
+import {
+  deployTransaction,
+  getFromAsyncStorage,
+  getToken,
+  setToAsyncStorage,
+  verifyToken,
+} from './utils';
 
 /**
  *  setUnsignedTx Func -> Sets the Unsigned TX
@@ -25,6 +32,9 @@ export const setRawTx = (data) => (dispatch) => {
   dispatch({type: RAW_TX, payload: data});
 };
 
+/**
+ *  getAuthToken -> Sets the auth token at the beginning
+ */
 export const getAuthToken = () => async (dispatch) => {
   let token = await getFromAsyncStorage('authToken');
   if (token) {
@@ -49,5 +59,23 @@ export const getAuthToken = () => async (dispatch) => {
       .catch(() => {
         dispatch({type: SET_AUTH_TOKEN, payload: null});
       });
+  }
+};
+
+/**
+ * deploySignedTx -> Deploys the signed tx and sets the Tx Receipt
+ * @param rawTx
+ * @param networkId
+ */
+export const deploySignedTx = (rawTx, networkId) => async (dispatch) => {
+  const token = await getFromAsyncStorage('authToken');
+  let result;
+  try {
+    result = await deployTransaction(rawTx, networkId, token);
+  } catch (e) {
+    result = e;
+  }
+  if (result) {
+    dispatch({type: DEPLOY_SIGNED_TX, payload: result.data});
   }
 };

@@ -9,7 +9,7 @@ import configureStore from './src/configureStore';
 
 const store = configureStore();
 
-const App: () => React$Node = () => {
+const App: () => ReactNode = () => {
   return (
     <Provider store={store}>
       <StatusBar backgroundColor="#2d4bf7" />
