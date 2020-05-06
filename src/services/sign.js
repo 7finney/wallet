@@ -23,7 +23,7 @@ export function deployUnsignedTx(tx: any, privateKey?: any, testnetId?: any) {
   try {
     const txData = formatters.inputTransactionFormatter(tx);
     // TODO: this method should not work for ganache and prysm and throw error
-    const chainId = Number(testnetId) === 5 ? 5 : Number(testnetId);
+    const chainId = Number(testnetId) === 5 ? 6284 : Number(testnetId);
     const unsignedTransaction = new EthereumTx(
       {
         from: txData.from || '0x',
