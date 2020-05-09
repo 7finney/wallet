@@ -47,6 +47,10 @@ const styles = StyleSheet.create({
         justifyContent: 'space-around',
         width: '100%',
         backgroundColor: 'transparent',
+    },
+    keyActionContainerLayout: {
+        width: '95%',
+        margin: 5,
     }
 });
 

@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
     },
   });
 
-const KeyModal = ({visible, handleGenerate, setShowModal}) => {
+const KeyModal = ({visible, handleGenerate, setVisible}) => {
     const [showPassword, setShowPassword] = useState(false);
     const [password, setPassword] = useState('');
     return (
@@ -84,14 +84,14 @@ const KeyModal = ({visible, handleGenerate, setShowModal}) => {
                     <Button
                         onPress={() => {
                             setPassword('');
-                            setShowModal(false);
+                            setVisible(false);
                         }}>
                         Cancel
                 </Button>
                     <Button
                         onPress={() => {
-                            handleGenerate();
-                            setShowModal(false);
+                            handleGenerate(password);
+                            setVisible(false);
                         }}>
                         Generate
                 </Button>

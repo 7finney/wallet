@@ -12,12 +12,13 @@ import {
   Spinner,
   Select
 } from '@ui-kitten/components';
-import { deployUnsignedTx, createKeyPair, deleteKeyPair } from '../services/sign';
+import { deployUnsignedTx, createKeyPair, deleteKeyPair, getPvtKey } from '../services/sign';
 import { setUnsignedTx, setRawTx, getAuthToken, setUnsignedTxHash, deploySignedTx } from '../actions';
 import { getUnsignedTx, setToAsyncStorage, getFromAsyncStorage } from '../actions/utils';
 
 import QRScanner from '../components/QRScanner';
 import KeyModal from '../components/KeyModal';
+import PubKeyModal from '../components/PubKeyModal';
 import styles from './HomeScreenStyle';
 
 
@@ -52,6 +53,7 @@ const HomeScreen = (props) => {
   const [txHash, setTxHash] = useState('');
   const [unsignedTxState, setUnsignedTxState] = useState({});
   const [pvtKey, setPvtKey] = useState('');
+  const [createModal, setCreateModal] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState('');
   const [scan, setScan] = useState(false);
@@ -68,9 +70,6 @@ const HomeScreen = (props) => {
       if (key) {
         setPvtKey(key);
       }
-      // if (password) {
-      //   setPassword('');
-      // }
     })();
   }, []);
 
@@ -201,31 +200,32 @@ const HomeScreen = (props) => {
 
   const handleShowPubKey = async () => {
     setShowLoader(true);
-    const pvtKey = await getFromAsyncStorage('pvtKey');
-    const res = await getPubKey(pvtKey);
-    if(res) {
-      setPubKey(res);
+    const keystore = JSON.parse(await getFromAsyncStorage('keystore'));
+    if(keystore) {
+      setPubKey('0x' + keystore.address);
+      console.log(pubKey);
+      setShowModal(true);
       setError('');
     } else {
-      setError('Error Generating pvt Key');
+      setError('Error getting Public Key for given keystore');
     }
     setShowLoader(false);
   }
 
-  const handleGenerateKeyPair = async () => {
+  const handleGenerateKeyPair = async (password) => {
     setShowLoader(true);
     console.log("Handle createKeyPair");
-    createKeyPair({ password: '' })
-      .then(async (res) => {
-        if (res) {
-          setShowLoader(false);
-          const savedPvtKey = await getFromAsyncStorage('pvtKey');
-          if (savedPvtKey) {
-            setPvtKey(savedPvtKey);
-            setError('');
-          } else {
-            setError('No Pvt Key Found');
-          }
+    createKeyPair(password)
+      .then(async () => {
+        setShowLoader(false);
+        const keystore = JSON.parse(await getFromAsyncStorage('keystore'));
+        const pvtKey = getPvtKey(keystore, password);
+        console.log(keystore);
+        if (pvtKey) {
+          setPvtKey(pvtKey);
+          setError('');
+        } else {
+          setError('No Keystore Found');
         }
       })
       .catch(e => {
@@ -261,37 +261,36 @@ const HomeScreen = (props) => {
           <Text style={{ textAlign: 'center', color: '#fff', fontSize: 18 }}>{error}</Text>
         </Layout>
       )}
-      <Layout
-        style={{
-          width: '95%',
-          margin: 5,
-        }}>
+      <Layout style={styles.keyActionContainerLayout}>
         <Input
           label="Private Key:"
           placeholder="Enter Private key without 0x"
           value={pvtKey}
-        
-          onChangeText={(e) => setPvtKey(e)}
+          disabled
         />
         <Layout>
           {
             pvtKey.length <= 0 &&
             <Layout>
               <Button onPress={(e) => handleAddPvtKey(e)}>Set Private Key</Button>
-              <Button onPress={() => setShowModal(true)}>Generate Account Key/Pair</Button>
+              <Button onPress={() => setCreateModal(true)}>Generate Account Key/Pair</Button>
             </Layout>
           }
           {
             pvtKey.length > 0 &&
             <Layout>
-              <Button onPress={(e) => handleShowPubKey(e)}>Show Public Key</Button>
+              <Button onPress={() => setShowModal(true)}>Show Public Key</Button>
               <Button onPress={handleDeletePrivateKey}>Delete Current Account</Button>
             </Layout>
           }
         </Layout>
         {
+          createModal &&
+          <KeyModal visible={createModal} setVisible={setCreateModal} handleGenerate={handleGenerateKeyPair} />
+        }
+        {
           showModal &&
-          <KeyModal visible={showModal} handleGenerate={handleGenerateKeyPair} setShowModal={setShowModal} />
+          <PubKeyModal visible={showModal} setVisible={setShowModal} setError={setError} />
         }
       </Layout>
       <ScrollView>

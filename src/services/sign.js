@@ -60,8 +60,8 @@ function extractPvtKey(keyObject, pswd) {
 }
 
 // create keypair and saves to AsyncStorage for now
-export async function createKeyPair(pswd) {
-  console.log("Creating keypair");
+export async function createKeyPair(password) {
+  console.log("Creating keypair with password: ", password);
 
   try {
     const params = { keyBytes: 32, ivBytes: 16 };
@@ -70,13 +70,15 @@ export async function createKeyPair(pswd) {
       kdf: 'scrypt',
       cipher: 'aes-128-ctr',
     };
-    const keyObject = keythereum.dump(pswd, bareKey.privateKey, bareKey.salt, bareKey.iv, options);
-    const key = extractPvtKey(keyObject, pswd);
-    const res = await setToAsyncStorage('pvtKey', key);
-    await setToAsyncStorage('publicKey', keyObject.address);
-    if (res) {
-      return keyObject.address;
-    }
+    const keyObject = keythereum.dump(password, bareKey.privateKey, bareKey.salt, bareKey.iv, options);
+    // store keyObject
+    await setToAsyncStorage('keystore', JSON.stringify(keyObject));
+    // const key = extractPvtKey(keyObject, pswd);
+    // const res = await setToAsyncStorage('pvtKey', key);
+    // await setToAsyncStorage('publicKey', keyObject.address);
+    // if (res) {
+    //   return keyObject.address;
+    // }
     return false;
   } catch (e) {
     console.error(e);
@@ -87,4 +89,9 @@ export async function createKeyPair(pswd) {
 // delete privateKey against address
 export function deleteKeyPair(publicKey) {
   return removeFromAsyncStorage(publicKey);
+}
+
+export function getPvtKey(keystore, password) {
+  const key = extractPvtKey(keystore, password);
+  return key;
 }
