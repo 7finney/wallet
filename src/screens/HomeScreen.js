@@ -10,13 +10,14 @@ import {
   Icon,
   Input,
   Spinner,
-  Select,
-  Modal,
+  Select
 } from '@ui-kitten/components';
 import { deployUnsignedTx, createKeyPair, deleteKeyPair } from '../services/sign';
-import QRScanner from '../components/QRScanner';
 import { setUnsignedTx, setRawTx, getAuthToken, setUnsignedTxHash, deploySignedTx } from '../actions';
 import { getUnsignedTx, setToAsyncStorage, getFromAsyncStorage } from '../actions/utils';
+
+import QRScanner from '../components/QRScanner';
+import KeyModal from '../components/KeyModal';
 import styles from './HomeScreenStyle';
 
 
@@ -29,9 +30,9 @@ const testNetArray = [
 
 const networkIdList = {
   'Ethereum Mainnet': 1,
-  Ropsten: 3,
-  Rinkeby: 4,
-  Goerli: 5,
+  'Ropsten': 3,
+  'Rinkeby': 4,
+  'Goerli': 5,
 };
 
 const usePrevious = (value) => {
@@ -51,12 +52,10 @@ const HomeScreen = (props) => {
   const [txHash, setTxHash] = useState('');
   const [unsignedTxState, setUnsignedTxState] = useState({});
   const [pvtKey, setPvtKey] = useState('');
-  const [password, setPassword] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState('');
   const [scan, setScan] = useState(false);
   const [showLoader, setShowLoader] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
 
   // ComponentDidMount
   useEffect(() => {
@@ -69,9 +68,9 @@ const HomeScreen = (props) => {
       if (key) {
         setPvtKey(key);
       }
-      if (password) {
-        setPassword('');
-      }
+      // if (password) {
+      //   setPassword('');
+      // }
     })();
   }, []);
 
@@ -216,20 +215,22 @@ const HomeScreen = (props) => {
   const handleGenerateKeyPair = async () => {
     setShowLoader(true);
     console.log("Handle createKeyPair");
-    
-    const res = await createKeyPair({ password: '' });
-    if (res) {
-      const savedPvtKey = await getFromAsyncStorage('pvtKey');
-      if (savedPvtKey) {
-        setPvtKey(savedPvtKey);
-        setError('');
-      } else {
-        setError('No Pvt Key Found');
-      }
-    } else {
-      setError('Error Generating pvt Key');
-    }
-    setShowLoader(false);
+    createKeyPair({ password: '' })
+      .then(async (res) => {
+        if (res) {
+          setShowLoader(false);
+          const savedPvtKey = await getFromAsyncStorage('pvtKey');
+          if (savedPvtKey) {
+            setPvtKey(savedPvtKey);
+            setError('');
+          } else {
+            setError('No Pvt Key Found');
+          }
+        }
+      })
+      .catch(e => {
+        setError('Error Generating pvt Key');
+      });
   };
 
   const handleDeletePrivateKey = async () => {
@@ -288,82 +289,10 @@ const HomeScreen = (props) => {
             </Layout>
           }
         </Layout>
-        {showModal && (
-          <Modal visible={showModal} backdropStyle={{ backgroundColor: 'rgba(0,0,0,0.8)' }}>
-            <Layout
-              level="3"
-              style={{
-                padding: 25,
-                display: 'flex',
-                width: Dimensions.get('window').width - 10,
-              }}>
-              <Layout
-                style={{
-                  marginVertical: 20,
-                  backgroundColor: 'transparent',
-                }}>
-                <Text
-                  style={{
-                    color: '#252525',
-                    marginVertical: 5,
-                  }}
-                  h1>
-                  Enter Password For Private Key
-                </Text>
-                <Layout>
-                  <Input
-                    style={{
-                      padding: 0,
-                      width: '100%',
-                      margin: 0,
-                      border: 'none',
-                    }}
-                    secureTextEntry={!showPassword}
-                    value={String(password)}
-                    icon={() => (
-                      <TouchableOpacity
-                        onPress={() => setShowPassword(!showPassword)}
-                        style={{
-                          backgroundColor: 'transparent',
-                          border: 'none',
-                        }}>
-                        {!showPassword ? (
-                          <Icon style={styles.icon} name="eye-outline" fill="#8F9BB3" />
-                        ) : (
-                            <Icon style={styles.icon} name="eye-off-outline" fill="#8F9BB3" />
-                          )}
-                      </TouchableOpacity>
-                    )}
-                    onChangeText={(e) => setPassword(e)}
-                  />
-                </Layout>
-              </Layout>
-              <Layout
-                style={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  justifyContent: 'space-around',
-                  width: '100%',
-                  backgroundColor: 'transparent',
-                }}>
-                <Button
-                  onPress={() => {
-                    setPassword('');
-                    setShowModal(false);
-                  }}>
-                  Cancel
-                </Button>
-                <Button
-                  onPress={() => {
-                    handleGenerateKeyPair();
-                    setShowModal(false);
-                  }}>
-                  Generate
-                </Button>
-              </Layout>
-            </Layout>
-          </Modal>
-        )}
+        {
+          showModal &&
+          <KeyModal visible={showModal} handleGenerate={handleGenerateKeyPair} setShowModal={setShowModal} />
+        }
       </Layout>
       <ScrollView>
         <Layout

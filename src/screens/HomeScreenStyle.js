@@ -40,6 +40,13 @@ const styles = StyleSheet.create({
         marginTop: 20,
         position: 'absolute',
         top: 50,
+    },
+    modalStyle: {
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        width: '100%',
+        backgroundColor: 'transparent',
     }
 });
 
