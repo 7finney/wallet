@@ -1,7 +1,7 @@
 // eslint-disable-next-line import/extensions
-import {Buffer} from 'buffer';
-import {sha3} from './hashUtils/sha3';
-import {removeFromAsyncStorage, setToAsyncStorage} from '../actions/utils';
+import { Buffer } from 'buffer';
+import { sha3 } from './hashUtils/sha3';
+import { removeFromAsyncStorage, setToAsyncStorage } from '../actions/utils';
 
 global.Buffer = Buffer;
 
@@ -19,7 +19,7 @@ const chainList = {
 };
 
 // sign an unsigned raw transaction and deploy
-export function deployUnsignedTx(tx: any, privateKey?: any, testnetId?: any) {
+export function deployUnsignedTx(tx, privateKey, testnetId) {
   try {
     const txData = formatters.inputTransactionFormatter(tx);
     // TODO: this method should not work for ganache and prysm and throw error
@@ -35,7 +35,7 @@ export function deployUnsignedTx(tx: any, privateKey?: any, testnetId?: any) {
         data: txData.data || '0x',
         chainId,
       },
-      {chain: chainList[Number(testnetId)]}
+      { chain: chainList[Number(testnetId)] }
     );
     const pvtk = Buffer.from(privateKey, 'hex');
     unsignedTransaction.sign(pvtk);
@@ -55,14 +55,16 @@ export function deployUnsignedTx(tx: any, privateKey?: any, testnetId?: any) {
 }
 
 // extract privateKey against address
-function extractPvtKey(keyObject: any, pswd: string) {
+function extractPvtKey(keyObject, pswd) {
   return keythereum.recover(pswd, keyObject).toString('hex');
 }
 
 // create keypair and saves to AsyncStorage for now
-export async function createKeyPair(pswd: string) {
+export async function createKeyPair(pswd) {
+  console.log("Creating keypair");
+
   try {
-    const params = {keyBytes: 32, ivBytes: 16};
+    const params = { keyBytes: 32, ivBytes: 16 };
     const bareKey = keythereum.create(params);
     const options = {
       kdf: 'scrypt',

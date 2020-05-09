@@ -1,4 +1,4 @@
-import {SET_AUTH_TOKEN} from '../actions/types';
+import { SET_AUTH_TOKEN } from '../actions/types';
 
 const initialState = {
   token: undefined,
@@ -7,8 +7,8 @@ const initialState = {
 export default (state = initialState, action) => {
   switch (action.type) {
     case SET_AUTH_TOKEN:
-      return {...state, token: action.payload};
+      return { ...state, token: action.payload };
     default:
-      return {...state};
+      return { ...state };
   }
 };

@@ -1,6 +1,6 @@
-import React, {useState, useEffect, useRef} from 'react';
-import {StyleSheet, Dimensions, TouchableOpacity, ScrollView, ToastAndroid} from 'react-native';
-import {connect} from 'react-redux';
+import React, { useState, useEffect, useRef } from 'react';
+import { Dimensions, TouchableOpacity, ScrollView, ToastAndroid } from 'react-native';
+import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import {
   Layout,
@@ -13,50 +13,18 @@ import {
   Select,
   Modal,
 } from '@ui-kitten/components';
-import {deployUnsignedTx, createKeyPair, deleteKeyPair} from '../services/sign';
+import { deployUnsignedTx, createKeyPair, deleteKeyPair } from '../services/sign';
 import QRScanner from '../components/QRScanner';
-import {setUnsignedTx, setRawTx, getAuthToken, setUnsignedTxHash, deploySignedTx} from '../actions';
-import {getUnsignedTx, setToAsyncStorage, getFromAsyncStorage} from '../actions/utils';
+import { setUnsignedTx, setRawTx, getAuthToken, setUnsignedTxHash, deploySignedTx } from '../actions';
+import { getUnsignedTx, setToAsyncStorage, getFromAsyncStorage } from '../actions/utils';
+import styles from './HomeScreenStyle';
 
-const styles = StyleSheet.create({
-  container: {
-    width: Dimensions.get('window').width,
-    height: Dimensions.get('window').height,
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-  },
-  homeHeader: {
-    padding: 10,
-    width: '100%',
-    backgroundColor: '#2d4bf7',
-    zIndex: 10000,
-  },
-  homeHeaderText: {
-    textAlign: 'center',
-    color: '#fff',
-    marginBottom: 2,
-  },
-  signBtn: {
-    margin: 10,
-    zIndex: 999,
-    width: Dimensions.get('window').width - 50,
-  },
-  icon: {
-    width: 32,
-    height: 32,
-  },
-  error: {
-    backgroundColor: '#eb4034',
-    width: '100%',
-    padding: 20,
-  },
-});
 
 const testNetArray = [
-  {text: 'Ethereum Mainnet'},
-  {text: 'Goerli'},
-  {text: 'Ropsten'},
-  {text: 'Rinkeby'},
+  { text: 'Ethereum Mainnet' },
+  { text: 'Goerli' },
+  { text: 'Ropsten' },
+  { text: 'Rinkeby' },
 ];
 
 const networkIdList = {
@@ -75,7 +43,7 @@ const usePrevious = (value) => {
 };
 
 const HomeScreen = (props) => {
-  const {tx, auth} = props;
+  const { tx, auth } = props;
 
   // Component State
   const [networkId, setNetworkId] = useState(5);
@@ -139,7 +107,7 @@ const HomeScreen = (props) => {
     setShowLoader(false);
   }, [tx.txReceipt]);
 
-  const prevAuth = usePrevious({auth});
+  const prevAuth = usePrevious({ auth });
   // ComponentDidUpdate for auth. Triggers on auth change
   useEffect(() => {
     if (auth.token !== '' && auth.token !== undefined && prevAuth.auth.token !== auth.token) {
@@ -178,7 +146,7 @@ const HomeScreen = (props) => {
     } else if (privateKey !== '') {
       // For signing With private key.
       // Not to be confused with deploying unsigned Tx
-      const {transactionHash, rawTransaction, Error} = deployUnsignedTx(
+      const { transactionHash, rawTransaction, Error } = deployUnsignedTx(
         unsignedTxState,
         privateKey,
         networkId
@@ -232,9 +200,24 @@ const HomeScreen = (props) => {
     }
   };
 
+  const handleShowPubKey = async () => {
+    setShowLoader(true);
+    const pvtKey = await getFromAsyncStorage('pvtKey');
+    const res = await getPubKey(pvtKey);
+    if(res) {
+      setPubKey(res);
+      setError('');
+    } else {
+      setError('Error Generating pvt Key');
+    }
+    setShowLoader(false);
+  }
+
   const handleGenerateKeyPair = async () => {
     setShowLoader(true);
-    const res = await createKeyPair('');
+    console.log("Handle createKeyPair");
+    
+    const res = await createKeyPair({ password: '' });
     if (res) {
       const savedPvtKey = await getFromAsyncStorage('pvtKey');
       if (savedPvtKey) {
@@ -264,27 +247,17 @@ const HomeScreen = (props) => {
   return (
     <Layout style={styles.container}>
       <Layout style={styles.homeHeader}>
-        <Text style={styles.homeHeaderText} category="h1">
-          Wallet
-        </Text>
+        <Text style={styles.homeHeaderText} category="h1">Wallet</Text>
       </Layout>
       {showLoader && (
         <Layout
-          style={{
-            backgroundColor: '#fff',
-            padding: 10,
-            borderRadius: 100,
-            elevation: 5,
-            marginTop: 20,
-            position: 'absolute',
-            top: 50,
-          }}>
+          style={styles.spinner}>
           <Spinner size="large" />
         </Layout>
       )}
       {error !== '' && (
         <Layout style={styles.error}>
-          <Text style={{textAlign: 'center', color: '#fff', fontSize: 18}}>{error}</Text>
+          <Text style={{ textAlign: 'center', color: '#fff', fontSize: 18 }}>{error}</Text>
         </Layout>
       )}
       <Layout
@@ -296,26 +269,27 @@ const HomeScreen = (props) => {
           label="Private Key:"
           placeholder="Enter Private key without 0x"
           value={pvtKey}
+        
           onChangeText={(e) => setPvtKey(e)}
         />
-        <Button onPress={(e) => handleAddPvtKey(e)}>Set Private Key</Button>
-        {pvtKey.length > 0 ? (
-          <Layout>
-            <Button onPress={() => setShowModal(true)} disabled>
-              Generate Account Key/Pair
-            </Button>
-            <Button onPress={handleDeletePrivateKey}>Delete Current Account</Button>
-          </Layout>
-        ) : (
-          <Layout>
-            <Button onPress={() => setShowModal(true)}>Generate Account Key/Pair</Button>
-            <Button onPress={handleDeletePrivateKey} disabled>
-              Delete Current Account
-            </Button>
-          </Layout>
-        )}
+        <Layout>
+          {
+            pvtKey.length <= 0 &&
+            <Layout>
+              <Button onPress={(e) => handleAddPvtKey(e)}>Set Private Key</Button>
+              <Button onPress={() => setShowModal(true)}>Generate Account Key/Pair</Button>
+            </Layout>
+          }
+          {
+            pvtKey.length > 0 &&
+            <Layout>
+              <Button onPress={(e) => handleShowPubKey(e)}>Show Public Key</Button>
+              <Button onPress={handleDeletePrivateKey}>Delete Current Account</Button>
+            </Layout>
+          }
+        </Layout>
         {showModal && (
-          <Modal visible={showModal} backdropStyle={{backgroundColor: 'rgba(0,0,0,0.8)'}}>
+          <Modal visible={showModal} backdropStyle={{ backgroundColor: 'rgba(0,0,0,0.8)' }}>
             <Layout
               level="3"
               style={{
@@ -356,8 +330,8 @@ const HomeScreen = (props) => {
                         {!showPassword ? (
                           <Icon style={styles.icon} name="eye-outline" fill="#8F9BB3" />
                         ) : (
-                          <Icon style={styles.icon} name="eye-off-outline" fill="#8F9BB3" />
-                        )}
+                            <Icon style={styles.icon} name="eye-off-outline" fill="#8F9BB3" />
+                          )}
                       </TouchableOpacity>
                     )}
                     onChangeText={(e) => setPassword(e)}
@@ -496,15 +470,15 @@ const HomeScreen = (props) => {
                     </Button>
                   </Layout>
                 ) : (
-                  <Layout>
-                    <Button style={[styles.signBtn, {backgroundColor: '#15348a'}]} disabled>
-                      Sign Transaction
+                    <Layout>
+                      <Button style={[styles.signBtn, { backgroundColor: '#15348a' }]} disabled>
+                        Sign Transaction
                     </Button>
-                    <Button style={styles.signBtn} onPress={handleDeployTx}>
-                      Deploy Transaction
+                      <Button style={styles.signBtn} onPress={handleDeployTx}>
+                        Deploy Transaction
                     </Button>
-                  </Layout>
-                )}
+                    </Layout>
+                  )}
               </Layout>
             )}
           </Layout>
@@ -535,7 +509,7 @@ const HomeScreen = (props) => {
           backgroundColor: '#fff',
           borderRadius: 100,
           shadowColor: '#000',
-          shadowOffset: {width: 0, height: -2},
+          shadowOffset: { width: 0, height: -2 },
           shadowOpacity: 0.5,
           shadowRadius: 2,
           elevation: 2,
@@ -552,8 +526,8 @@ const HomeScreen = (props) => {
         {scan === false ? (
           <Icon style={styles.icon} fill="#8F9BB3" name="camera" />
         ) : (
-          <Icon style={styles.icon} fill="#8F9BB3" name="close" />
-        )}
+            <Icon style={styles.icon} fill="#8F9BB3" name="close" />
+          )}
       </TouchableOpacity>
     </Layout>
   );
@@ -570,7 +544,7 @@ HomeScreen.propTypes = {
   tx: PropTypes.any,
 };
 
-const mapStateToProps = ({tx, auth}) => {
+const mapStateToProps = ({ tx, auth }) => {
   return {
     tx,
     auth,
