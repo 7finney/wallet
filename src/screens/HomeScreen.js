@@ -15,10 +15,12 @@ import {
 import { deployUnsignedTx, createKeyPair, deleteKeyPair, getPvtKey } from '../services/sign';
 import { setUnsignedTx, setRawTx, getAuthToken, setUnsignedTxHash, deploySignedTx } from '../actions';
 import { getUnsignedTx, setToAsyncStorage, getFromAsyncStorage } from '../actions/utils';
+var RNFS = require('react-native-fs');
 
 import QRScanner from '../components/QRScanner';
 import KeyModal from '../components/KeyModal';
 import PubKeyModal from '../components/PubKeyModal';
+import { KsSelect } from '../components/KeyStoreSelector';
 import styles from './HomeScreenStyle';
 
 
@@ -231,6 +233,19 @@ const HomeScreen = (props) => {
     }
   };
 
+  const saveKeystore = async () => {
+    const keystore = JSON.parse(await getFromAsyncStorage('keystore'));
+    var path = RNFS.DocumentDirectoryPath + `/${keystore.address}.json`;
+    RNFS.writeFile(path, JSON.stringify(keystore), 'utf8')
+      .then((success) => {
+        ToastAndroid.showWithGravity('Keystore saved!', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
+      })
+      .catch((err) => {
+        console.log(err.message);
+        ToastAndroid.showWithGravity(err.message, ToastAndroid.LONG, ToastAndroid.BOTTOM);
+      });
+  }
+
   return (
     <Layout style={styles.container}>
       <Layout style={styles.homeHeader}>
@@ -248,12 +263,15 @@ const HomeScreen = (props) => {
         </Layout>
       )}
       <Layout style={styles.keyActionContainerLayout}>
+        {/* we should have a list of available keys */}
         <Input
           label="Private Key:"
           placeholder="Enter Private key without 0x"
           value={pvtKey}
           disabled
         />
+        {/* TODO: read keystore files from Home component */}
+        <KsSelect />
         <Layout>
           {
             pvtKey.length <= 0 &&
@@ -267,6 +285,12 @@ const HomeScreen = (props) => {
             <Layout>
               <Button onPress={() => setShowModal(true)}>Show Public Key</Button>
               <Button onPress={handleDeletePrivateKey}>Delete Current Account</Button>
+            </Layout>
+          }
+          {
+            pvtKey.length > 0 &&
+            <Layout>
+              <Button onPress={() => saveKeystore()}>Save keystore</Button>
             </Layout>
           }
         </Layout>
