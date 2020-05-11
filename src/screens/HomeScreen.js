@@ -198,20 +198,6 @@ const HomeScreen = (props) => {
     }
   };
 
-  const handleShowPubKey = async () => {
-    setShowLoader(true);
-    const keystore = JSON.parse(await getFromAsyncStorage('keystore'));
-    if(keystore) {
-      setPubKey('0x' + keystore.address);
-      console.log(pubKey);
-      setShowModal(true);
-      setError('');
-    } else {
-      setError('Error getting Public Key for given keystore');
-    }
-    setShowLoader(false);
-  }
-
   const handleGenerateKeyPair = async (password) => {
     setShowLoader(true);
     console.log("Handle createKeyPair");

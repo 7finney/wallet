@@ -13,8 +13,9 @@
   "dependencies": {
     "@eva-design/eva": "^1.4.0",
     "@react-native-community/async-storage": "^1.10.0",
+    "@react-native-community/clipboard": "^1.2.2",
     "@tradle/react-native-http": "^2.0.1",
-    "@ui-kitten/components": "^4.4.1",
+    "@ui-kitten/components": "^5.0.0-alpha.1",
     "@ui-kitten/eva-icons": "^5.0.0-alpha.1",
     "assert": "^1.5.0",
     "asyncstorage-down": "^4.2.0",
@@ -50,6 +51,7 @@
     "react-native-qrcode-scanner": "^1.4.0",
     "react-native-qrcode-svg": "^6.0.6",
     "react-native-randombytes": "^3.5.3",
+    "react-native-share": "^3.3.2",
     "react-native-svg": "^12.1.0",
     "react-native-tcp": "^3.3.2",
     "react-native-udp": "^2.7.0",
