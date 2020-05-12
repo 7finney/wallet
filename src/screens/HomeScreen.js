@@ -1,41 +1,32 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Dimensions, TouchableOpacity, ScrollView, ToastAndroid } from 'react-native';
-import { connect } from 'react-redux';
+import React, {useState, useEffect, useRef} from 'react';
+import {Dimensions, TouchableOpacity, ScrollView, ToastAndroid} from 'react-native';
+import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
-import {
-  Layout,
-  Text,
-  Button,
-  Card,
-  Icon,
-  Input,
-  Spinner,
-  Select
-} from '@ui-kitten/components';
-import { deployUnsignedTx, createKeyPair, deleteKeyPair, getPvtKey } from '../services/sign';
-import { setUnsignedTx, setRawTx, getAuthToken, setUnsignedTxHash, deploySignedTx } from '../actions';
-import { getUnsignedTx, setToAsyncStorage, getFromAsyncStorage } from '../actions/utils';
-var RNFS = require('react-native-fs');
+import {Layout, Text, Button, Card, Icon, Input, Spinner, Select} from '@ui-kitten/components';
+import {deployUnsignedTx, createKeyPair, deleteKeyPair, getPvtKey} from '../services/sign';
+import {setUnsignedTx, setRawTx, getAuthToken, setUnsignedTxHash, deploySignedTx} from '../actions';
+import {getUnsignedTx, setToAsyncStorage, getFromAsyncStorage} from '../actions/utils';
 
 import QRScanner from '../components/QRScanner';
 import KeyModal from '../components/KeyModal';
 import PubKeyModal from '../components/PubKeyModal';
-import { KsSelect } from '../components/KeyStoreSelector';
+import KsSelect from '../components/KeyStoreSelector';
 import styles from './HomeScreenStyle';
 
+const RNFS = require('react-native-fs');
 
 const testNetArray = [
-  { text: 'Ethereum Mainnet' },
-  { text: 'Goerli' },
-  { text: 'Ropsten' },
-  { text: 'Rinkeby' },
+  {text: 'Ethereum Mainnet'},
+  {text: 'Goerli'},
+  {text: 'Ropsten'},
+  {text: 'Rinkeby'},
 ];
 
 const networkIdList = {
   'Ethereum Mainnet': 1,
-  'Ropsten': 3,
-  'Rinkeby': 4,
-  'Goerli': 5,
+  Ropsten: 3,
+  Rinkeby: 4,
+  Goerli: 5,
 };
 
 const usePrevious = (value) => {
@@ -47,7 +38,7 @@ const usePrevious = (value) => {
 };
 
 const HomeScreen = (props) => {
-  const { tx, auth } = props;
+  const {tx, auth} = props;
 
   // Component State
   const [networkId, setNetworkId] = useState(5);
@@ -60,6 +51,7 @@ const HomeScreen = (props) => {
   const [error, setError] = useState('');
   const [scan, setScan] = useState(false);
   const [showLoader, setShowLoader] = useState(false);
+  const [ksfiles, setKsFiles] = useState([]);
 
   // ComponentDidMount
   useEffect(() => {
@@ -73,6 +65,32 @@ const HomeScreen = (props) => {
         setPvtKey(key);
       }
     })();
+  }, []);
+
+  const isJSONfile = (n) => {
+    if (n.split('.').pop() === 'json') {
+      return true;
+    }
+    return false;
+  };
+
+  // First read keystore files from DocumentDirectory
+  useEffect(() => {
+    ToastAndroid.showWithGravity(
+      'Looking for saved Keystores',
+      ToastAndroid.SHORT,
+      ToastAndroid.BOTTOM
+    );
+    RNFS.readDir(RNFS.DocumentDirectoryPath)
+      .then((results) => {
+        console.log('GOT RESULT', results);
+        const files = results.filter((result) => result.isFile() && isJSONfile(result.name));
+        setKsFiles(files);
+      })
+      .catch((err) => {
+        console.error(err);
+        throw err;
+      });
   }, []);
 
   // ComponentDidUpdate for tx.unsignedTxHash. Triggers on tx Hash change
@@ -107,7 +125,7 @@ const HomeScreen = (props) => {
     setShowLoader(false);
   }, [tx.txReceipt]);
 
-  const prevAuth = usePrevious({ auth });
+  const prevAuth = usePrevious({auth});
   // ComponentDidUpdate for auth. Triggers on auth change
   useEffect(() => {
     if (auth.token !== '' && auth.token !== undefined && prevAuth.auth.token !== auth.token) {
@@ -146,7 +164,7 @@ const HomeScreen = (props) => {
     } else if (privateKey !== '') {
       // For signing With private key.
       // Not to be confused with deploying unsigned Tx
-      const { transactionHash, rawTransaction, Error } = deployUnsignedTx(
+      const {transactionHash, rawTransaction, Error} = deployUnsignedTx(
         unsignedTxState,
         privateKey,
         networkId
@@ -200,108 +218,129 @@ const HomeScreen = (props) => {
     }
   };
 
+  const loadPvtKey = async (password) => {
+    const keystore = JSON.parse(await getFromAsyncStorage('keystore'));
+    const pk = getPvtKey(keystore, password);
+    if (pk) {
+      setPvtKey(pk);
+      setError('');
+      ToastAndroid.showWithGravity('Private key loaded!', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
+    } else {
+      setError('No Keystore Found');
+    }
+    setShowLoader(false);
+  };
+
   const handleGenerateKeyPair = async (password) => {
     setShowLoader(true);
-    console.log("Handle createKeyPair");
     createKeyPair(password)
       .then(async () => {
-        setShowLoader(false);
-        const keystore = JSON.parse(await getFromAsyncStorage('keystore'));
-        const pvtKey = getPvtKey(keystore, password);
-        console.log(keystore);
-        if (pvtKey) {
-          setPvtKey(pvtKey);
-          setError('');
-        } else {
-          setError('No Keystore Found');
-        }
+        loadPvtKey(password);
       })
-      .catch(e => {
-        setError('Error Generating pvt Key');
+      .catch((e) => {
+        setError('Error Generating Private Key: ', e.message);
       });
   };
 
-  const handleDeletePrivateKey = async () => {
-    try {
-      const res = await deleteKeyPair('pvtKey');
-      if (res) {
+  const handleDeleteKeyStore = async () => {
+    const keystore = JSON.parse(await getFromAsyncStorage('keystore'));
+    const path = `${RNFS.DocumentDirectoryPath}/${keystore.address}.json`;
+    RNFS.unlink(path)
+      .then(() => {
         setPvtKey('');
         setError('Private Key Deleted Successfully');
-      }
-    } catch (e) {
-      setError('Unable To delete Private Key');
-    }
+      })
+      .catch((err) => {
+        console.error(err.message);
+        setError('Unable To delete Keystore');
+      });
   };
 
   const saveKeystore = async () => {
     const keystore = JSON.parse(await getFromAsyncStorage('keystore'));
-    var path = RNFS.DocumentDirectoryPath + `/${keystore.address}.json`;
+    const path = `${RNFS.DocumentDirectoryPath}/${keystore.address}.json`;
     RNFS.writeFile(path, JSON.stringify(keystore), 'utf8')
       .then((success) => {
         ToastAndroid.showWithGravity('Keystore saved!', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
       })
       .catch((err) => {
-        console.log(err.message);
         ToastAndroid.showWithGravity(err.message, ToastAndroid.LONG, ToastAndroid.BOTTOM);
       });
-  }
+  };
+
+  const setKeystore = (index) => {
+    setShowLoader(true);
+    const p = ksfiles[index.row].path;
+    ToastAndroid.showWithGravity(
+      'Loading key from file...',
+      ToastAndroid.SHORT,
+      ToastAndroid.BOTTOM
+    );
+    RNFS.readFile(p, 'utf8')
+      .then(async (keyObject) => {
+        await setToAsyncStorage('keystore', keyObject);
+        loadPvtKey('');
+      })
+      .catch((e) => {
+        throw e;
+      });
+  };
 
   return (
     <Layout style={styles.container}>
       <Layout style={styles.homeHeader}>
-        <Text style={styles.homeHeaderText} category="h1">Wallet</Text>
+        <Text style={styles.homeHeaderText} category="h1">
+          Wallet
+        </Text>
       </Layout>
       {showLoader && (
-        <Layout
-          style={styles.spinner}>
+        <Layout style={styles.spinner}>
           <Spinner size="large" />
         </Layout>
       )}
       {error !== '' && (
         <Layout style={styles.error}>
-          <Text style={{ textAlign: 'center', color: '#fff', fontSize: 18 }}>{error}</Text>
+          <Text style={{textAlign: 'center', color: '#fff', fontSize: 18}}>{error}</Text>
         </Layout>
       )}
       <Layout style={styles.keyActionContainerLayout}>
         {/* we should have a list of available keys */}
         <Input
-          label="Private Key:"
-          placeholder="Enter Private key without 0x"
+          label="Private Key"
+          placeholder="Your Private key will appear here!"
           value={pvtKey}
           disabled
         />
         {/* TODO: read keystore files from Home component */}
-        <KsSelect />
+        {ksfiles.length > 0 && <KsSelect ksfiles={ksfiles} setKeystore={setKeystore} />}
         <Layout>
-          {
-            pvtKey.length <= 0 &&
+          {pvtKey.length <= 0 && (
             <Layout>
-              <Button onPress={(e) => handleAddPvtKey(e)}>Set Private Key</Button>
               <Button onPress={() => setCreateModal(true)}>Generate Account Key/Pair</Button>
             </Layout>
-          }
-          {
-            pvtKey.length > 0 &&
+          )}
+          {pvtKey.length > 0 && (
             <Layout>
               <Button onPress={() => setShowModal(true)}>Show Public Key</Button>
-              <Button onPress={handleDeletePrivateKey}>Delete Current Account</Button>
+              <Button onPress={handleDeleteKeyStore}>Delete Current Account</Button>
             </Layout>
-          }
-          {
-            pvtKey.length > 0 &&
+          )}
+          {pvtKey.length > 0 && (
             <Layout>
               <Button onPress={() => saveKeystore()}>Save keystore</Button>
             </Layout>
-          }
+          )}
         </Layout>
-        {
-          createModal &&
-          <KeyModal visible={createModal} setVisible={setCreateModal} handleGenerate={handleGenerateKeyPair} />
-        }
-        {
-          showModal &&
+        {createModal && (
+          <KeyModal
+            visible={createModal}
+            setVisible={setCreateModal}
+            handleGenerate={handleGenerateKeyPair}
+          />
+        )}
+        {showModal && (
           <PubKeyModal visible={showModal} setVisible={setShowModal} setError={setError} />
-        }
+        )}
       </Layout>
       <ScrollView>
         <Layout
@@ -408,15 +447,15 @@ const HomeScreen = (props) => {
                     </Button>
                   </Layout>
                 ) : (
-                    <Layout>
-                      <Button style={[styles.signBtn, { backgroundColor: '#15348a' }]} disabled>
-                        Sign Transaction
+                  <Layout>
+                    <Button style={[styles.signBtn, {backgroundColor: '#15348a'}]} disabled>
+                      Sign Transaction
                     </Button>
-                      <Button style={styles.signBtn} onPress={handleDeployTx}>
-                        Deploy Transaction
+                    <Button style={styles.signBtn} onPress={handleDeployTx}>
+                      Deploy Transaction
                     </Button>
-                    </Layout>
-                  )}
+                  </Layout>
+                )}
               </Layout>
             )}
           </Layout>
@@ -447,7 +486,7 @@ const HomeScreen = (props) => {
           backgroundColor: '#fff',
           borderRadius: 100,
           shadowColor: '#000',
-          shadowOffset: { width: 0, height: -2 },
+          shadowOffset: {width: 0, height: -2},
           shadowOpacity: 0.5,
           shadowRadius: 2,
           elevation: 2,
@@ -464,8 +503,8 @@ const HomeScreen = (props) => {
         {scan === false ? (
           <Icon style={styles.icon} fill="#8F9BB3" name="camera" />
         ) : (
-            <Icon style={styles.icon} fill="#8F9BB3" name="close" />
-          )}
+          <Icon style={styles.icon} fill="#8F9BB3" name="close" />
+        )}
       </TouchableOpacity>
     </Layout>
   );
@@ -482,7 +521,7 @@ HomeScreen.propTypes = {
   tx: PropTypes.any,
 };
 
-const mapStateToProps = ({ tx, auth }) => {
+const mapStateToProps = ({tx, auth}) => {
   return {
     tx,
     auth,

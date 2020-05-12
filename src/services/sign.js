@@ -1,7 +1,7 @@
 // eslint-disable-next-line import/extensions
-import { Buffer } from 'buffer';
-import { sha3 } from './hashUtils/sha3';
-import { removeFromAsyncStorage, setToAsyncStorage } from '../actions/utils';
+import {Buffer} from 'buffer';
+import {sha3} from './hashUtils/sha3';
+import {removeFromAsyncStorage, setToAsyncStorage} from '../actions/utils';
 
 global.Buffer = Buffer;
 
@@ -35,7 +35,7 @@ export function deployUnsignedTx(tx, privateKey, testnetId) {
         data: txData.data || '0x',
         chainId,
       },
-      { chain: chainList[Number(testnetId)] }
+      {chain: chainList[Number(testnetId)]}
     );
     const pvtk = Buffer.from(privateKey, 'hex');
     unsignedTransaction.sign(pvtk);
@@ -61,24 +61,24 @@ function extractPvtKey(keyObject, pswd) {
 
 // create keypair and saves to AsyncStorage for now
 export async function createKeyPair(password) {
-  console.log("Creating keypair with password: ", password);
+  console.log('Creating keypair with password: ', password);
 
   try {
-    const params = { keyBytes: 32, ivBytes: 16 };
+    const params = {keyBytes: 32, ivBytes: 16};
     const bareKey = keythereum.create(params);
     const options = {
       kdf: 'scrypt',
       cipher: 'aes-128-ctr',
     };
-    const keyObject = keythereum.dump(password, bareKey.privateKey, bareKey.salt, bareKey.iv, options);
+    const keyObject = keythereum.dump(
+      password,
+      bareKey.privateKey,
+      bareKey.salt,
+      bareKey.iv,
+      options
+    );
     // store keyObject
     await setToAsyncStorage('keystore', JSON.stringify(keyObject));
-    // const key = extractPvtKey(keyObject, pswd);
-    // const res = await setToAsyncStorage('pvtKey', key);
-    // await setToAsyncStorage('publicKey', keyObject.address);
-    // if (res) {
-    //   return keyObject.address;
-    // }
     return false;
   } catch (e) {
     console.error(e);
