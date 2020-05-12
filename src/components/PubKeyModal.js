@@ -1,10 +1,10 @@
 import React, {useState, useEffect} from 'react';
 import {Layout, Text, Button, Input, Modal, Icon} from '@ui-kitten/components';
-import {StyleSheet, Dimensions, ToastAndroid, TouchableOpacity} from 'react-native';
+import {TouchableOpacity, StyleSheet, Dimensions, ToastAndroid, Platform} from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import Share from 'react-native-share';
 import Clipboard from '@react-native-community/clipboard';
-
+import PropTypes from 'prop-types';
 import {getFromAsyncStorage} from '../actions/utils';
 
 const styles = StyleSheet.create({
@@ -67,7 +67,7 @@ const PubKeyModal = ({visible, setVisible, setError}) => {
       }
     })();
   }, []);
-  shareQR = () => {
+  const shareQR = () => {
     const title = 'Ethential Wallet address';
     svg.toDataURL((dataURL) => {
       const options = Platform.select({
@@ -81,7 +81,7 @@ const PubKeyModal = ({visible, setVisible, setError}) => {
       Share.open(options);
     });
   };
-  copyPubKey = () => {
+  const copyPubKey = () => {
     Clipboard.setString(pubKey);
     ToastAndroid.showWithGravity(
       'Public key copied to clipboard!',
@@ -91,6 +91,7 @@ const PubKeyModal = ({visible, setVisible, setError}) => {
   };
   const CopyIcon = (props) => (
     <TouchableOpacity onPress={() => copyPubKey()}>
+      {/* eslint-disable-next-line react/jsx-props-no-spreading */}
       <Icon {...props} name="copy" />
     </TouchableOpacity>
   );
@@ -130,6 +131,12 @@ const PubKeyModal = ({visible, setVisible, setError}) => {
       </Layout>
     </Modal>
   );
+};
+
+PubKeyModal.propTypes = {
+  visible: PropTypes.bool,
+  setError: PropTypes.func,
+  setVisible: PropTypes.func,
 };
 
 export default PubKeyModal;

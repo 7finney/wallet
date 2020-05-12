@@ -3,7 +3,7 @@ import {Dimensions, TouchableOpacity, ScrollView, ToastAndroid} from 'react-nati
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
 import {Layout, Text, Button, Card, Icon, Input, Spinner, Select} from '@ui-kitten/components';
-import {deployUnsignedTx, createKeyPair, deleteKeyPair, getPvtKey} from '../services/sign';
+import {deployUnsignedTx, createKeyPair, getPvtKey} from '../services/sign';
 import {setUnsignedTx, setRawTx, getAuthToken, setUnsignedTxHash, deploySignedTx} from '../actions';
 import {getUnsignedTx, setToAsyncStorage, getFromAsyncStorage} from '../actions/utils';
 
@@ -208,16 +208,6 @@ const HomeScreen = (props) => {
     }
   };
 
-  const handleAddPvtKey = async () => {
-    const result = await setToAsyncStorage('pvtKey', pvtKey);
-    if (result) {
-      setPvtKey(result);
-      setError('Successfully Set');
-    } else {
-      setError('Error setting private key');
-    }
-  };
-
   const loadPvtKey = async (password) => {
     const keystore = JSON.parse(await getFromAsyncStorage('keystore'));
     const pk = getPvtKey(keystore, password);
@@ -260,7 +250,7 @@ const HomeScreen = (props) => {
     const keystore = JSON.parse(await getFromAsyncStorage('keystore'));
     const path = `${RNFS.DocumentDirectoryPath}/${keystore.address}.json`;
     RNFS.writeFile(path, JSON.stringify(keystore), 'utf8')
-      .then((success) => {
+      .then(() => {
         ToastAndroid.showWithGravity('Keystore saved!', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
       })
       .catch((err) => {
