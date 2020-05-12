@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
-import {Layout, Text, Button, Icon, Input, Spinner, Modal} from '@ui-kitten/components';
+import {Layout, Text, Button, Icon, Input, Modal} from '@ui-kitten/components';
 import {TouchableOpacity, StyleSheet, Dimensions} from 'react-native';
+import PropTypes from 'prop-types';
 
 const styles = StyleSheet.create({
   layout: {
@@ -32,55 +33,61 @@ const styles = StyleSheet.create({
   },
 });
 
-const KeyModal = ({ visible, handleGenerate, setVisible }) => {
-    const [showPassword, setShowPassword] = useState(false);
-    const [password, setPassword] = useState('');
-    const InputEyeIcon = (props) => (
-        <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-            <Icon {...props} name={!showPassword ? 'eye-off' : 'eye'} />
-        </TouchableOpacity>
-    );
-    return (
-        <Modal visible={visible} backdropStyle={{ backgroundColor: 'rgba(0,0,0,0.8)' }}>
-            <Layout
-                level="3"
-                style={styles.layout}>
-                <Layout
-                    style={{
-                        marginVertical: 20,
-                        backgroundColor: 'transparent',
-                    }}>
-                    <Text style={styles.paswdText} h1>Enter Password For Private Key</Text>
-                    <Layout>
-                        <Input
-                            style={styles.secureText}
-                            secureTextEntry={!showPassword}
-                            value={String(password)}
-                            accessoryRight={InputEyeIcon}
-                            onChangeText={(e) => setPassword(e)}
-                        />
-                    </Layout>
-                </Layout>
-                <Layout
-                    style={styles.modalStyle}>
-                    <Button
-                        onPress={() => {
-                            setPassword('');
-                            setVisible(false);
-                        }}>
-                        Cancel
-                </Button>
-                    <Button
-                        onPress={() => {
-                            handleGenerate(password);
-                            setVisible(false);
-                        }}>
-                        Generate
-                </Button>
-                </Layout>
-            </Layout>
-        </Modal>
-    )
-}
+const KeyModal = ({visible, handleGenerate, setVisible}) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const [password, setPassword] = useState('');
+  const InputEyeIcon = (props) => (
+    <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+      {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+      <Icon {...props} name={!showPassword ? 'eye-off' : 'eye'} />
+    </TouchableOpacity>
+  );
+  return (
+    <Modal visible={visible} backdropStyle={{backgroundColor: 'rgba(0,0,0,0.8)'}}>
+      <Layout level="3" style={styles.layout}>
+        <Layout
+          style={{
+            marginVertical: 20,
+            backgroundColor: 'transparent',
+          }}>
+          <Text style={styles.paswdText} h1>
+            Enter Password For Private Key
+          </Text>
+          <Layout>
+            <Input
+              style={styles.secureText}
+              secureTextEntry={!showPassword}
+              value={String(password)}
+              accessoryRight={InputEyeIcon}
+              onChangeText={(e) => setPassword(e)}
+            />
+          </Layout>
+        </Layout>
+        <Layout style={styles.modalStyle}>
+          <Button
+            onPress={() => {
+              setPassword('');
+              setVisible(false);
+            }}>
+            Cancel
+          </Button>
+          <Button
+            onPress={() => {
+              handleGenerate(password);
+              setVisible(false);
+            }}>
+            Generate
+          </Button>
+        </Layout>
+      </Layout>
+    </Modal>
+  );
+};
+
+KeyModal.propTypes = {
+  visible: PropTypes.bool,
+  handleGenerate: PropTypes.func,
+  setVisible: PropTypes.func,
+};
 
 export default KeyModal;

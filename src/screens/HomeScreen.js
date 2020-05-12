@@ -10,8 +10,10 @@ import {getUnsignedTx, setToAsyncStorage, getFromAsyncStorage} from '../actions/
 import QRScanner from '../components/QRScanner';
 import KeyModal from '../components/KeyModal';
 import PubKeyModal from '../components/PubKeyModal';
-import { KsSelect } from '../components/KeyStoreSelector';
+import {KsSelect} from '../components/KeyStoreSelector';
 import styles from './HomeScreenStyle';
+
+const RNFS = require('react-native-fs');
 
 const testNetArray = [
   {text: 'Ethereum Mainnet'},
@@ -196,16 +198,16 @@ const HomeScreen = (props) => {
       .then(async () => {
         setShowLoader(false);
         const keystore = JSON.parse(await getFromAsyncStorage('keystore'));
-        const pvtKey = getPvtKey(keystore, password);
+        const privateKey = getPvtKey(keystore, password);
         console.log(keystore);
-        if (pvtKey) {
-          setPvtKey(pvtKey);
+        if (privateKey) {
+          setPvtKey(privateKey);
           setError('');
         } else {
           setError('No Keystore Found');
         }
       })
-      .catch(e => {
+      .catch(() => {
         setError('Error Generating pvt Key');
       });
   };
@@ -224,16 +226,16 @@ const HomeScreen = (props) => {
 
   const saveKeystore = async () => {
     const keystore = JSON.parse(await getFromAsyncStorage('keystore'));
-    var path = RNFS.DocumentDirectoryPath + `/${keystore.address}.json`;
+    const path = `${RNFS.DocumentDirectoryPath}/${keystore.address}.json`;
     RNFS.writeFile(path, JSON.stringify(keystore), 'utf8')
-      .then((success) => {
+      .then(() => {
         ToastAndroid.showWithGravity('Keystore saved!', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
       })
       .catch((err) => {
         console.log(err.message);
         ToastAndroid.showWithGravity(err.message, ToastAndroid.LONG, ToastAndroid.BOTTOM);
       });
-  }
+  };
 
   return (
     <Layout style={styles.container}>
@@ -274,13 +276,12 @@ const HomeScreen = (props) => {
               <Button onPress={() => setShowModal(true)}>Show Public Key</Button>
               <Button onPress={handleDeletePrivateKey}>Delete Current Account</Button>
             </Layout>
-          }
-          {
-            pvtKey.length > 0 &&
+          )}
+          {pvtKey.length > 0 && (
             <Layout>
               <Button onPress={() => saveKeystore()}>Save keystore</Button>
             </Layout>
-          }
+          )}
         </Layout>
         {createModal && (
           <KeyModal
