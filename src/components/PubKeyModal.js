@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import {Layout, Text, Button, Input, Modal, Icon} from '@ui-kitten/components';
-import {TouchableOpacity, StyleSheet, Dimensions, ToastAndroid} from 'react-native';
+import {TouchableOpacity, StyleSheet, Dimensions, ToastAndroid, Platform} from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import Share from 'react-native-share';
 import Clipboard from '@react-native-community/clipboard';
@@ -50,13 +50,6 @@ const styles = StyleSheet.create({
     width: '100%',
   },
 });
-
-const InputEyeIcon = (props) => (
-  <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-    {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-    <Icon {...props} name={!showPassword ? 'eye-off' : 'eye'} />
-  </TouchableOpacity>
-);
 
 const PubKeyModal = ({visible, setVisible, setError}) => {
   const [pubKey, setPubKey] = useState('');

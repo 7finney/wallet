@@ -79,12 +79,6 @@ export async function createKeyPair(password) {
     );
     // store keyObject
     await setToAsyncStorage('keystore', JSON.stringify(keyObject));
-    // const key = extractPvtKey(keyObject, pswd);
-    // const res = await setToAsyncStorage('pvtKey', key);
-    // await setToAsyncStorage('publicKey', keyObject.address);
-    // if (res) {
-    //   return keyObject.address;
-    // }
     return false;
   } catch (e) {
     console.error(e);

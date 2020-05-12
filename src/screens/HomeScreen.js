@@ -3,14 +3,14 @@ import {Dimensions, TouchableOpacity, ScrollView, ToastAndroid} from 'react-nati
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
 import {Layout, Text, Button, Card, Icon, Input, Spinner, Select} from '@ui-kitten/components';
-import {deployUnsignedTx, createKeyPair, deleteKeyPair, getPvtKey} from '../services/sign';
+import {deployUnsignedTx, createKeyPair, getPvtKey} from '../services/sign';
 import {setUnsignedTx, setRawTx, getAuthToken, setUnsignedTxHash, deploySignedTx} from '../actions';
 import {getUnsignedTx, setToAsyncStorage, getFromAsyncStorage} from '../actions/utils';
 
 import QRScanner from '../components/QRScanner';
 import KeyModal from '../components/KeyModal';
 import PubKeyModal from '../components/PubKeyModal';
-import {KsSelect} from '../components/KeyStoreSelector';
+import KsSelect from '../components/KeyStoreSelector';
 import styles from './HomeScreenStyle';
 
 const RNFS = require('react-native-fs');
@@ -51,6 +51,7 @@ const HomeScreen = (props) => {
   const [error, setError] = useState('');
   const [scan, setScan] = useState(false);
   const [showLoader, setShowLoader] = useState(false);
+  const [ksfiles, setKsFiles] = useState([]);
 
   // ComponentDidMount
   useEffect(() => {
@@ -64,6 +65,32 @@ const HomeScreen = (props) => {
         setPvtKey(key);
       }
     })();
+  }, []);
+
+  const isJSONfile = (n) => {
+    if (n.split('.').pop() === 'json') {
+      return true;
+    }
+    return false;
+  };
+
+  // First read keystore files from DocumentDirectory
+  useEffect(() => {
+    ToastAndroid.showWithGravity(
+      'Looking for saved Keystores',
+      ToastAndroid.SHORT,
+      ToastAndroid.BOTTOM
+    );
+    RNFS.readDir(RNFS.DocumentDirectoryPath)
+      .then((results) => {
+        console.log('GOT RESULT', results);
+        const files = results.filter((result) => result.isFile() && isJSONfile(result.name));
+        setKsFiles(files);
+      })
+      .catch((err) => {
+        console.error(err);
+        throw err;
+      });
   }, []);
 
   // ComponentDidUpdate for tx.unsignedTxHash. Triggers on tx Hash change
@@ -181,47 +208,42 @@ const HomeScreen = (props) => {
     }
   };
 
-  const handleAddPvtKey = async () => {
-    const result = await setToAsyncStorage('pvtKey', pvtKey);
-    if (result) {
-      setPvtKey(result);
-      setError('Successfully Set');
+  const loadPvtKey = async (password) => {
+    const keystore = JSON.parse(await getFromAsyncStorage('keystore'));
+    const pk = getPvtKey(keystore, password);
+    if (pk) {
+      setPvtKey(pk);
+      setError('');
+      ToastAndroid.showWithGravity('Private key loaded!', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
     } else {
-      setError('Error setting private key');
+      setError('No Keystore Found');
     }
+    setShowLoader(false);
   };
 
   const handleGenerateKeyPair = async (password) => {
     setShowLoader(true);
-    console.log('Handle createKeyPair');
     createKeyPair(password)
       .then(async () => {
-        setShowLoader(false);
-        const keystore = JSON.parse(await getFromAsyncStorage('keystore'));
-        const privateKey = getPvtKey(keystore, password);
-        console.log(keystore);
-        if (privateKey) {
-          setPvtKey(privateKey);
-          setError('');
-        } else {
-          setError('No Keystore Found');
-        }
+        loadPvtKey(password);
       })
-      .catch(() => {
-        setError('Error Generating pvt Key');
+      .catch((e) => {
+        setError('Error Generating Private Key: ', e.message);
       });
   };
 
-  const handleDeletePrivateKey = async () => {
-    try {
-      const res = await deleteKeyPair('pvtKey');
-      if (res) {
+  const handleDeleteKeyStore = async () => {
+    const keystore = JSON.parse(await getFromAsyncStorage('keystore'));
+    const path = `${RNFS.DocumentDirectoryPath}/${keystore.address}.json`;
+    RNFS.unlink(path)
+      .then(() => {
         setPvtKey('');
         setError('Private Key Deleted Successfully');
-      }
-    } catch (e) {
-      setError('Unable To delete Private Key');
-    }
+      })
+      .catch((err) => {
+        console.error(err.message);
+        setError('Unable To delete Keystore');
+      });
   };
 
   const saveKeystore = async () => {
@@ -232,8 +254,25 @@ const HomeScreen = (props) => {
         ToastAndroid.showWithGravity('Keystore saved!', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
       })
       .catch((err) => {
-        console.log(err.message);
         ToastAndroid.showWithGravity(err.message, ToastAndroid.LONG, ToastAndroid.BOTTOM);
+      });
+  };
+
+  const setKeystore = (index) => {
+    setShowLoader(true);
+    const p = ksfiles[index.row].path;
+    ToastAndroid.showWithGravity(
+      'Loading key from file...',
+      ToastAndroid.SHORT,
+      ToastAndroid.BOTTOM
+    );
+    RNFS.readFile(p, 'utf8')
+      .then(async (keyObject) => {
+        await setToAsyncStorage('keystore', keyObject);
+        loadPvtKey('');
+      })
+      .catch((e) => {
+        throw e;
       });
   };
 
@@ -257,24 +296,23 @@ const HomeScreen = (props) => {
       <Layout style={styles.keyActionContainerLayout}>
         {/* we should have a list of available keys */}
         <Input
-          label="Private Key:"
-          placeholder="Enter Private key without 0x"
+          label="Private Key"
+          placeholder="Your Private key will appear here!"
           value={pvtKey}
           disabled
         />
         {/* TODO: read keystore files from Home component */}
-        <KsSelect />
+        {ksfiles.length > 0 && <KsSelect ksfiles={ksfiles} setKeystore={setKeystore} />}
         <Layout>
           {pvtKey.length <= 0 && (
             <Layout>
-              <Button onPress={(e) => handleAddPvtKey(e)}>Set Private Key</Button>
               <Button onPress={() => setCreateModal(true)}>Generate Account Key/Pair</Button>
             </Layout>
           )}
           {pvtKey.length > 0 && (
             <Layout>
               <Button onPress={() => setShowModal(true)}>Show Public Key</Button>
-              <Button onPress={handleDeletePrivateKey}>Delete Current Account</Button>
+              <Button onPress={handleDeleteKeyStore}>Delete Current Account</Button>
             </Layout>
           )}
           {pvtKey.length > 0 && (
