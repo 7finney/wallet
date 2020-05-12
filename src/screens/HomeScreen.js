@@ -1,21 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Dimensions, TouchableOpacity, ScrollView, ToastAndroid } from 'react-native';
-import { connect } from 'react-redux';
+import React, {useState, useEffect, useRef} from 'react';
+import {Dimensions, TouchableOpacity, ScrollView, ToastAndroid} from 'react-native';
+import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
-import {
-  Layout,
-  Text,
-  Button,
-  Card,
-  Icon,
-  Input,
-  Spinner,
-  Select
-} from '@ui-kitten/components';
-import { deployUnsignedTx, createKeyPair, deleteKeyPair, getPvtKey } from '../services/sign';
-import { setUnsignedTx, setRawTx, getAuthToken, setUnsignedTxHash, deploySignedTx } from '../actions';
-import { getUnsignedTx, setToAsyncStorage, getFromAsyncStorage } from '../actions/utils';
-var RNFS = require('react-native-fs');
+import {Layout, Text, Button, Card, Icon, Input, Spinner, Select} from '@ui-kitten/components';
+import {deployUnsignedTx, createKeyPair, deleteKeyPair, getPvtKey} from '../services/sign';
+import {setUnsignedTx, setRawTx, getAuthToken, setUnsignedTxHash, deploySignedTx} from '../actions';
+import {getUnsignedTx, setToAsyncStorage, getFromAsyncStorage} from '../actions/utils';
 
 import QRScanner from '../components/QRScanner';
 import KeyModal from '../components/KeyModal';
@@ -23,19 +13,18 @@ import PubKeyModal from '../components/PubKeyModal';
 import { KsSelect } from '../components/KeyStoreSelector';
 import styles from './HomeScreenStyle';
 
-
 const testNetArray = [
-  { text: 'Ethereum Mainnet' },
-  { text: 'Goerli' },
-  { text: 'Ropsten' },
-  { text: 'Rinkeby' },
+  {text: 'Ethereum Mainnet'},
+  {text: 'Goerli'},
+  {text: 'Ropsten'},
+  {text: 'Rinkeby'},
 ];
 
 const networkIdList = {
   'Ethereum Mainnet': 1,
-  'Ropsten': 3,
-  'Rinkeby': 4,
-  'Goerli': 5,
+  Ropsten: 3,
+  Rinkeby: 4,
+  Goerli: 5,
 };
 
 const usePrevious = (value) => {
@@ -47,7 +36,7 @@ const usePrevious = (value) => {
 };
 
 const HomeScreen = (props) => {
-  const { tx, auth } = props;
+  const {tx, auth} = props;
 
   // Component State
   const [networkId, setNetworkId] = useState(5);
@@ -107,7 +96,7 @@ const HomeScreen = (props) => {
     setShowLoader(false);
   }, [tx.txReceipt]);
 
-  const prevAuth = usePrevious({ auth });
+  const prevAuth = usePrevious({auth});
   // ComponentDidUpdate for auth. Triggers on auth change
   useEffect(() => {
     if (auth.token !== '' && auth.token !== undefined && prevAuth.auth.token !== auth.token) {
@@ -146,7 +135,7 @@ const HomeScreen = (props) => {
     } else if (privateKey !== '') {
       // For signing With private key.
       // Not to be confused with deploying unsigned Tx
-      const { transactionHash, rawTransaction, Error } = deployUnsignedTx(
+      const {transactionHash, rawTransaction, Error} = deployUnsignedTx(
         unsignedTxState,
         privateKey,
         networkId
@@ -202,7 +191,7 @@ const HomeScreen = (props) => {
 
   const handleGenerateKeyPair = async (password) => {
     setShowLoader(true);
-    console.log("Handle createKeyPair");
+    console.log('Handle createKeyPair');
     createKeyPair(password)
       .then(async () => {
         setShowLoader(false);
@@ -249,17 +238,18 @@ const HomeScreen = (props) => {
   return (
     <Layout style={styles.container}>
       <Layout style={styles.homeHeader}>
-        <Text style={styles.homeHeaderText} category="h1">Wallet</Text>
+        <Text style={styles.homeHeaderText} category="h1">
+          Wallet
+        </Text>
       </Layout>
       {showLoader && (
-        <Layout
-          style={styles.spinner}>
+        <Layout style={styles.spinner}>
           <Spinner size="large" />
         </Layout>
       )}
       {error !== '' && (
         <Layout style={styles.error}>
-          <Text style={{ textAlign: 'center', color: '#fff', fontSize: 18 }}>{error}</Text>
+          <Text style={{textAlign: 'center', color: '#fff', fontSize: 18}}>{error}</Text>
         </Layout>
       )}
       <Layout style={styles.keyActionContainerLayout}>
@@ -273,15 +263,13 @@ const HomeScreen = (props) => {
         {/* TODO: read keystore files from Home component */}
         <KsSelect />
         <Layout>
-          {
-            pvtKey.length <= 0 &&
+          {pvtKey.length <= 0 && (
             <Layout>
               <Button onPress={(e) => handleAddPvtKey(e)}>Set Private Key</Button>
               <Button onPress={() => setCreateModal(true)}>Generate Account Key/Pair</Button>
             </Layout>
-          }
-          {
-            pvtKey.length > 0 &&
+          )}
+          {pvtKey.length > 0 && (
             <Layout>
               <Button onPress={() => setShowModal(true)}>Show Public Key</Button>
               <Button onPress={handleDeletePrivateKey}>Delete Current Account</Button>
@@ -294,14 +282,16 @@ const HomeScreen = (props) => {
             </Layout>
           }
         </Layout>
-        {
-          createModal &&
-          <KeyModal visible={createModal} setVisible={setCreateModal} handleGenerate={handleGenerateKeyPair} />
-        }
-        {
-          showModal &&
+        {createModal && (
+          <KeyModal
+            visible={createModal}
+            setVisible={setCreateModal}
+            handleGenerate={handleGenerateKeyPair}
+          />
+        )}
+        {showModal && (
           <PubKeyModal visible={showModal} setVisible={setShowModal} setError={setError} />
-        }
+        )}
       </Layout>
       <ScrollView>
         <Layout
@@ -408,15 +398,15 @@ const HomeScreen = (props) => {
                     </Button>
                   </Layout>
                 ) : (
-                    <Layout>
-                      <Button style={[styles.signBtn, { backgroundColor: '#15348a' }]} disabled>
-                        Sign Transaction
+                  <Layout>
+                    <Button style={[styles.signBtn, {backgroundColor: '#15348a'}]} disabled>
+                      Sign Transaction
                     </Button>
-                      <Button style={styles.signBtn} onPress={handleDeployTx}>
-                        Deploy Transaction
+                    <Button style={styles.signBtn} onPress={handleDeployTx}>
+                      Deploy Transaction
                     </Button>
-                    </Layout>
-                  )}
+                  </Layout>
+                )}
               </Layout>
             )}
           </Layout>
@@ -447,7 +437,7 @@ const HomeScreen = (props) => {
           backgroundColor: '#fff',
           borderRadius: 100,
           shadowColor: '#000',
-          shadowOffset: { width: 0, height: -2 },
+          shadowOffset: {width: 0, height: -2},
           shadowOpacity: 0.5,
           shadowRadius: 2,
           elevation: 2,
@@ -464,8 +454,8 @@ const HomeScreen = (props) => {
         {scan === false ? (
           <Icon style={styles.icon} fill="#8F9BB3" name="camera" />
         ) : (
-            <Icon style={styles.icon} fill="#8F9BB3" name="close" />
-          )}
+          <Icon style={styles.icon} fill="#8F9BB3" name="close" />
+        )}
       </TouchableOpacity>
     </Layout>
   );
@@ -482,7 +472,7 @@ HomeScreen.propTypes = {
   tx: PropTypes.any,
 };
 
-const mapStateToProps = ({ tx, auth }) => {
+const mapStateToProps = ({tx, auth}) => {
   return {
     tx,
     auth,

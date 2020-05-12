@@ -1,43 +1,35 @@
-import React, { useState } from 'react';
-import {
-    Layout,
-    Text,
-    Button,
-    Icon,
-    Input,
-    Spinner,
-    Modal,
-} from '@ui-kitten/components';
-import { TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import React, {useState} from 'react';
+import {Layout, Text, Button, Icon, Input, Spinner, Modal} from '@ui-kitten/components';
+import {TouchableOpacity, StyleSheet, Dimensions} from 'react-native';
 
 const styles = StyleSheet.create({
-    layout: {
-        padding: 25,
-        flex: 1,
-        width: Dimensions.get('window').width - 10,
-    },
-    paswdText: {
-        color: '#252525',
-        marginVertical: 5,
-    },
-    secureText: {
-        padding: 0,
-        width: '100%',
-        margin: 0
-    },
-    textBold: {
-        fontWeight: '500',
-        color: '#fff',
-        textAlign: 'center',
-    },
-    buttonText: {
-        fontSize: 21,
-        color: 'rgb(0,122,255)',
-        textAlign: 'center',
-    },
-    buttonTouchable: {
-        padding: 40,
-    },
+  layout: {
+    padding: 25,
+    flex: 1,
+    width: Dimensions.get('window').width - 10,
+  },
+  paswdText: {
+    color: '#252525',
+    marginVertical: 5,
+  },
+  secureText: {
+    padding: 0,
+    width: '100%',
+    margin: 0,
+  },
+  textBold: {
+    fontWeight: '500',
+    color: '#fff',
+    textAlign: 'center',
+  },
+  buttonText: {
+    fontSize: 21,
+    color: 'rgb(0,122,255)',
+    textAlign: 'center',
+  },
+  buttonTouchable: {
+    padding: 40,
+  },
 });
 
 const KeyModal = ({ visible, handleGenerate, setVisible }) => {

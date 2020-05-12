@@ -1,13 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import {
-    Layout,
-    Text,
-    Button,
-    Input,
-    Modal,
-    Icon,
-} from '@ui-kitten/components';
-import { StyleSheet, Dimensions, ToastAndroid, TouchableOpacity } from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {Layout, Text, Button, Input, Modal} from '@ui-kitten/components';
+import {StyleSheet, Dimensions, ToastAndroid} from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import Share from 'react-native-share';
 import Clipboard from '@react-native-community/clipboard';
