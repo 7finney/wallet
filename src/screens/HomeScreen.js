@@ -10,6 +10,7 @@ import {getUnsignedTx, setToAsyncStorage, getFromAsyncStorage} from '../actions/
 import QRScanner from '../components/QRScanner';
 import KeyModal from '../components/KeyModal';
 import PubKeyModal from '../components/PubKeyModal';
+import { KsSelect } from '../components/KeyStoreSelector';
 import styles from './HomeScreenStyle';
 
 const testNetArray = [
@@ -188,20 +189,6 @@ const HomeScreen = (props) => {
     }
   };
 
-  const handleShowPubKey = async () => {
-    setShowLoader(true);
-    const keystore = JSON.parse(await getFromAsyncStorage('keystore'));
-    if (keystore) {
-      setPubKey(`0x${keystore.address}`);
-      console.log(pubKey);
-      setShowModal(true);
-      setError('');
-    } else {
-      setError('Error getting Public Key for given keystore');
-    }
-    setShowLoader(false);
-  };
-
   const handleGenerateKeyPair = async (password) => {
     setShowLoader(true);
     console.log('Handle createKeyPair');
@@ -218,7 +205,7 @@ const HomeScreen = (props) => {
           setError('No Keystore Found');
         }
       })
-      .catch((e) => {
+      .catch(e => {
         setError('Error Generating pvt Key');
       });
   };
@@ -234,6 +221,19 @@ const HomeScreen = (props) => {
       setError('Unable To delete Private Key');
     }
   };
+
+  const saveKeystore = async () => {
+    const keystore = JSON.parse(await getFromAsyncStorage('keystore'));
+    var path = RNFS.DocumentDirectoryPath + `/${keystore.address}.json`;
+    RNFS.writeFile(path, JSON.stringify(keystore), 'utf8')
+      .then((success) => {
+        ToastAndroid.showWithGravity('Keystore saved!', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
+      })
+      .catch((err) => {
+        console.log(err.message);
+        ToastAndroid.showWithGravity(err.message, ToastAndroid.LONG, ToastAndroid.BOTTOM);
+      });
+  }
 
   return (
     <Layout style={styles.container}>
@@ -253,12 +253,15 @@ const HomeScreen = (props) => {
         </Layout>
       )}
       <Layout style={styles.keyActionContainerLayout}>
+        {/* we should have a list of available keys */}
         <Input
           label="Private Key:"
           placeholder="Enter Private key without 0x"
           value={pvtKey}
           disabled
         />
+        {/* TODO: read keystore files from Home component */}
+        <KsSelect />
         <Layout>
           {pvtKey.length <= 0 && (
             <Layout>
@@ -271,7 +274,13 @@ const HomeScreen = (props) => {
               <Button onPress={() => setShowModal(true)}>Show Public Key</Button>
               <Button onPress={handleDeletePrivateKey}>Delete Current Account</Button>
             </Layout>
-          )}
+          }
+          {
+            pvtKey.length > 0 &&
+            <Layout>
+              <Button onPress={() => saveKeystore()}>Save keystore</Button>
+            </Layout>
+          }
         </Layout>
         {createModal && (
           <KeyModal
