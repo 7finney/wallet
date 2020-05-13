@@ -83,12 +83,10 @@ const HomeScreen = (props) => {
     );
     RNFS.readDir(RNFS.DocumentDirectoryPath)
       .then((results) => {
-        console.log('GOT RESULT', results);
         const files = results.filter((result) => result.isFile() && isJSONfile(result.name));
         setKsFiles(files);
       })
       .catch((err) => {
-        console.error(err);
         throw err;
       });
   }, []);
@@ -149,7 +147,6 @@ const HomeScreen = (props) => {
 
   // componentDidUpdate
   useEffect(() => {
-    console.log(props);
     if (Object.keys(unsignedTxState).length === 0 && Object.keys(tx.unsignedTx).length > 0) {
       setShowLoader(false);
       setUnsignedTxState(tx.unsignedTx);

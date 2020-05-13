@@ -61,8 +61,6 @@ function extractPvtKey(keyObject, pswd) {
 
 // create keypair and saves to AsyncStorage for now
 export async function createKeyPair(password) {
-  console.log('Creating keypair with password: ', password);
-
   try {
     const params = {keyBytes: 32, ivBytes: 16};
     const bareKey = keythereum.create(params);
