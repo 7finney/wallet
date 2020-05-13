@@ -66,17 +66,17 @@ const KeyModal = ({visible, handleGenerate, setVisible}) => {
         <Layout style={styles.modalStyle}>
           <Button
             onPress={() => {
+              setVisible(false);
+              handleGenerate(password);
+            }}>
+            Generate
+          </Button>
+          <Button
+            onPress={() => {
               setPassword('');
               setVisible(false);
             }}>
             Cancel
-          </Button>
-          <Button
-            onPress={() => {
-              handleGenerate(password);
-              setVisible(false);
-            }}>
-            Generate
           </Button>
         </Layout>
       </Layout>
