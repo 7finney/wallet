@@ -9,6 +9,9 @@ const styles = StyleSheet.create({
     flex: 1,
     width: Dimensions.get('window').width - 10,
   },
+  layoutContainer: {
+    backgroundColor: 'transparent',
+  },
   paswdText: {
     color: '#252525',
     marginVertical: 5,
@@ -31,6 +34,13 @@ const styles = StyleSheet.create({
   buttonTouchable: {
     padding: 40,
   },
+  buttonContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
 });
 
 const KeyModal = ({visible, handleGenerate, setVisible}) => {
@@ -50,20 +60,21 @@ const KeyModal = ({visible, handleGenerate, setVisible}) => {
             marginVertical: 20,
             backgroundColor: 'transparent',
           }}>
-          <Text style={styles.paswdText} h1>
-            Enter Password For Private Key
-          </Text>
-          <Layout>
+          <Layout style={styles.layoutContainer}>
+            <Text style={styles.paswdText} h1>
+              Create your Private Key
+            </Text>
             <Input
+              label="Password"
               style={styles.secureText}
               secureTextEntry={!showPassword}
               value={String(password)}
               accessoryRight={InputEyeIcon}
-              onChangeText={(e) => setPassword(e)}
+              onChangeText={(nextValue) => setPassword(nextValue)}
             />
           </Layout>
         </Layout>
-        <Layout style={styles.modalStyle}>
+        <Layout style={styles.buttonContainer}>
           <Button
             onPress={() => {
               setVisible(false);
