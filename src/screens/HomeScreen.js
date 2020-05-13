@@ -74,8 +74,7 @@ const HomeScreen = (props) => {
     return false;
   };
 
-  // First read keystore files from DocumentDirectory
-  useEffect(() => {
+  const searchKsFiles = () => {
     ToastAndroid.showWithGravity(
       'Looking for saved Keystores',
       ToastAndroid.SHORT,
@@ -89,6 +88,11 @@ const HomeScreen = (props) => {
       .catch((err) => {
         throw err;
       });
+  };
+
+  // First read keystore files from DocumentDirectory
+  useEffect(() => {
+    searchKsFiles();
   }, []);
 
   // ComponentDidUpdate for tx.unsignedTxHash. Triggers on tx Hash change
@@ -235,11 +239,13 @@ const HomeScreen = (props) => {
     RNFS.unlink(path)
       .then(() => {
         setPvtKey('');
-        setError('Private Key Deleted Successfully');
+        setError('Private Key Deleted Successfully!');
+        searchKsFiles();
       })
       .catch((err) => {
-        console.error(err.message);
-        setError('Unable To delete Keystore');
+        console.log(err);
+        setPvtKey('');
+        setError('Unable To delete Keystore file!');
       });
   };
 
@@ -249,6 +255,7 @@ const HomeScreen = (props) => {
     RNFS.writeFile(path, JSON.stringify(keystore), 'utf8')
       .then(() => {
         ToastAndroid.showWithGravity('Keystore saved!', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
+        searchKsFiles();
       })
       .catch((err) => {
         ToastAndroid.showWithGravity(err.message, ToastAndroid.LONG, ToastAndroid.BOTTOM);
@@ -298,7 +305,7 @@ const HomeScreen = (props) => {
           value={pvtKey}
           disabled
         />
-        {/* TODO: read keystore files from Home component */}
+        {/* Keystore files selector */}
         {ksfiles.length > 0 && <KsSelect ksfiles={ksfiles} setKeystore={setKeystore} />}
         <Layout>
           {pvtKey.length <= 0 && (

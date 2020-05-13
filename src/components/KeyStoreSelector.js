@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 
 const styles = StyleSheet.create({
   container: {
-    minHeight: 128,
+    minHeight: 50,
   },
 });
 
