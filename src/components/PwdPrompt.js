@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const KeyModal = ({visible, handleGenerate, setVisible}) => {
+const PwdPrompt = ({visible, setVisible, onSubmit}) => {
   const [showPassword, setShowPassword] = useState(false);
   const [password, setPassword] = useState('');
   const InputEyeIcon = (props) => (
@@ -51,7 +51,7 @@ const KeyModal = ({visible, handleGenerate, setVisible}) => {
             backgroundColor: 'transparent',
           }}>
           <Text style={styles.paswdText} h1>
-            Enter Password For Private Key
+            Enter Password to decrypt Private Key
           </Text>
           <Layout>
             <Input
@@ -66,10 +66,10 @@ const KeyModal = ({visible, handleGenerate, setVisible}) => {
         <Layout style={styles.modalStyle}>
           <Button
             onPress={() => {
+              onSubmit(password);
               setVisible(false);
-              handleGenerate(password);
             }}>
-            Generate
+            Ok
           </Button>
           <Button
             onPress={() => {
@@ -84,10 +84,10 @@ const KeyModal = ({visible, handleGenerate, setVisible}) => {
   );
 };
 
-KeyModal.propTypes = {
+PwdPrompt.propTypes = {
   visible: PropTypes.bool,
-  handleGenerate: PropTypes.func,
   setVisible: PropTypes.func,
+  onSubmit: PropTypes.func,
 };
 
-export default KeyModal;
+export default PwdPrompt;

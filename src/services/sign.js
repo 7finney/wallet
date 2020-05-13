@@ -79,7 +79,7 @@ export async function createKeyPair(password) {
     await setToAsyncStorage('keystore', JSON.stringify(keyObject));
     return false;
   } catch (e) {
-    console.error(e);
+    console.log(e);
     return false;
   }
 }
@@ -90,6 +90,11 @@ export function deleteKeyPair(publicKey) {
 }
 
 export function getPvtKey(keystore, password) {
-  const key = extractPvtKey(keystore, password);
-  return key;
+  try {
+    const key = extractPvtKey(keystore, password);
+    return key;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
 }
