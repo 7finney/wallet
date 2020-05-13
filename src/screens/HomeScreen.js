@@ -11,6 +11,7 @@ import QRScanner from '../components/QRScanner';
 import KeyModal from '../components/KeyModal';
 import PubKeyModal from '../components/PubKeyModal';
 import KsSelect from '../components/KeyStoreSelector';
+import PwdPrompt from '../components/PwdPrompt';
 import styles from './HomeScreenStyle';
 
 const RNFS = require('react-native-fs');
@@ -52,6 +53,7 @@ const HomeScreen = (props) => {
   const [scan, setScan] = useState(false);
   const [showLoader, setShowLoader] = useState(false);
   const [ksfiles, setKsFiles] = useState([]);
+  const [showPwdPrompt, setShowPwdPrompt] = useState(false);
 
   // ComponentDidMount
   useEffect(() => {
@@ -211,13 +213,18 @@ const HomeScreen = (props) => {
 
   const loadPvtKey = async (password) => {
     const keystore = JSON.parse(await getFromAsyncStorage('keystore'));
-    const pk = getPvtKey(keystore, password);
-    if (pk) {
+    ToastAndroid.showWithGravity(
+      'Unlocking private key with password!',
+      ToastAndroid.SHORT,
+      ToastAndroid.BOTTOM
+    );
+    try {
+      const pk = getPvtKey(keystore, password);
       setPvtKey(pk);
       setError('');
       ToastAndroid.showWithGravity('Private key loaded!', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
-    } else {
-      setError('No Keystore Found');
+    } catch (err) {
+      setError(err.message);
     }
     setShowLoader(false);
   };
@@ -273,11 +280,14 @@ const HomeScreen = (props) => {
     RNFS.readFile(p, 'utf8')
       .then(async (keyObject) => {
         await setToAsyncStorage('keystore', keyObject);
-        loadPvtKey('');
+        setShowPwdPrompt(true);
       })
       .catch((e) => {
-        throw e;
+        console.error(e);
       });
+  };
+  const handleUnlock = (password) => {
+    loadPvtKey(password);
   };
 
   return (
@@ -334,6 +344,13 @@ const HomeScreen = (props) => {
         )}
         {showModal && (
           <PubKeyModal visible={showModal} setVisible={setShowModal} setError={setError} />
+        )}
+        {showPwdPrompt && (
+          <PwdPrompt
+            visible={showPwdPrompt}
+            setVisible={setShowPwdPrompt}
+            onSubmit={handleUnlock}
+          />
         )}
       </Layout>
       <ScrollView>
