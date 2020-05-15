@@ -3,7 +3,7 @@ import {Dimensions, TouchableOpacity, ScrollView, ToastAndroid} from 'react-nati
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
 import {Layout, Text, Button, Card, Icon, Input, Spinner, Select} from '@ui-kitten/components';
-import {deployUnsignedTx, createKeyPair, getPvtKey} from '../services/sign';
+import {deployUnsignedTx, createKeyPair, getPvtKey, listAccounts} from '../services/sign';
 import {setUnsignedTx, setRawTx, getAuthToken, setUnsignedTxHash, deploySignedTx} from '../actions';
 import {getUnsignedTx, setToAsyncStorage, getFromAsyncStorage} from '../actions/utils';
 
@@ -54,6 +54,8 @@ const HomeScreen = (props) => {
   const [showLoader, setShowLoader] = useState(false);
   const [ksfiles, setKsFiles] = useState([]);
   const [showPwdPrompt, setShowPwdPrompt] = useState(false);
+  const [accounts, setAccounts] = useState([]);
+  const [account, setAccount] = useState({});
 
   // ComponentDidMount
   useEffect(() => {
@@ -76,25 +78,19 @@ const HomeScreen = (props) => {
     return false;
   };
 
-  const searchKsFiles = () => {
+  const searchAccounts = async () => {
     ToastAndroid.showWithGravity(
       'Looking for saved Keystores',
       ToastAndroid.SHORT,
       ToastAndroid.BOTTOM
     );
-    RNFS.readDir(RNFS.DocumentDirectoryPath)
-      .then((results) => {
-        const files = results.filter((result) => result.isFile() && isJSONfile(result.name));
-        setKsFiles(files);
-      })
-      .catch((err) => {
-        throw err;
-      });
+    const a = await listAccounts();
+    setAccounts(a);
   };
 
   // First read keystore files from DocumentDirectory
   useEffect(() => {
-    searchKsFiles();
+    searchAccounts();
   }, []);
 
   // ComponentDidUpdate for tx.unsignedTxHash. Triggers on tx Hash change
@@ -233,7 +229,7 @@ const HomeScreen = (props) => {
     setShowLoader(true);
     createKeyPair(password)
       .then(async () => {
-        loadPvtKey(password);
+        // loadPvtKey(password);
       })
       .catch((e) => {
         setError('Error Generating Private Key: ', e.message);
@@ -247,7 +243,7 @@ const HomeScreen = (props) => {
       .then(() => {
         setPvtKey('');
         setError('Private Key Deleted Successfully!');
-        searchKsFiles();
+        searchAccounts();
       })
       .catch((err) => {
         console.log(err);
@@ -262,30 +258,13 @@ const HomeScreen = (props) => {
     RNFS.writeFile(path, JSON.stringify(keystore), 'utf8')
       .then(() => {
         ToastAndroid.showWithGravity('Keystore saved!', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
-        searchKsFiles();
+        searchAccounts();
       })
       .catch((err) => {
         ToastAndroid.showWithGravity(err.message, ToastAndroid.LONG, ToastAndroid.BOTTOM);
       });
   };
 
-  const setKeystore = (index) => {
-    setShowLoader(true);
-    const p = ksfiles[index.row].path;
-    ToastAndroid.showWithGravity(
-      'Loading key from file...',
-      ToastAndroid.SHORT,
-      ToastAndroid.BOTTOM
-    );
-    RNFS.readFile(p, 'utf8')
-      .then(async (keyObject) => {
-        await setToAsyncStorage('keystore', keyObject);
-        setShowPwdPrompt(true);
-      })
-      .catch((e) => {
-        console.error(e);
-      });
-  };
   const handleUnlock = (password) => {
     loadPvtKey(password);
   };
@@ -312,18 +291,18 @@ const HomeScreen = (props) => {
         <Input
           label="Private Key"
           placeholder="Your Private key will appear here!"
-          value={pvtKey}
+          value={account.address}
           disabled
         />
         {/* Keystore files selector */}
-        {ksfiles.length > 0 && <KsSelect ksfiles={ksfiles} setKeystore={setKeystore} />}
+        {accounts.length > 0 && <KsSelect accounts={accounts} setAccount={setAccount} />}
         <Layout>
           {pvtKey.length <= 0 && (
             <Layout>
               <Button onPress={() => setCreateModal(true)}>Generate Account Key/Pair</Button>
             </Layout>
           )}
-          {pvtKey.length > 0 && (
+          {Object.keys(account).length > 0 && (
             <Layout>
               <Button onPress={() => setShowModal(true)}>Show Public Key</Button>
               <Button onPress={handleDeleteKeyStore}>Delete Current Account</Button>
@@ -342,8 +321,13 @@ const HomeScreen = (props) => {
             handleGenerate={handleGenerateKeyPair}
           />
         )}
-        {showModal && (
-          <PubKeyModal visible={showModal} setVisible={setShowModal} setError={setError} />
+        {Object.keys(account).length > 0 && showModal && (
+          <PubKeyModal
+            address={account.address}
+            visible={showModal}
+            setVisible={setShowModal}
+            setError={setError}
+          />
         )}
         {showPwdPrompt && (
           <PwdPrompt

@@ -1,7 +1,10 @@
 // eslint-disable-next-line import/extensions
 import {Buffer} from 'buffer';
+import Geth from 'react-native-geth';
 import {sha3} from './hashUtils/sha3';
 import {removeFromAsyncStorage, setToAsyncStorage} from '../actions/utils';
+
+const geth = new Geth();
 
 global.Buffer = Buffer;
 
@@ -62,26 +65,36 @@ function extractPvtKey(keyObject, pswd) {
 // create keypair and saves to AsyncStorage for now
 export async function createKeyPair(password) {
   try {
-    const params = {keyBytes: 32, ivBytes: 16};
-    const bareKey = keythereum.create(params);
-    const options = {
-      kdf: 'scrypt',
-      cipher: 'aes-128-ctr',
-    };
-    const keyObject = keythereum.dump(
-      password,
-      bareKey.privateKey,
-      bareKey.salt,
-      bareKey.iv,
-      options
-    );
-    // store keyObject
+    const keyObject = await geth.newAccount(password);
+    console.log(keyObject);
     await setToAsyncStorage('keystore', JSON.stringify(keyObject));
-    return false;
-  } catch (e) {
-    console.log(e);
-    return false;
+    return keyObject;
+  } catch (error) {
+    console.log(error);
+    return error;
   }
+
+  // try {
+  //   const params = {keyBytes: 32, ivBytes: 16};
+  //   const bareKey = keythereum.create(params);
+  //   const options = {
+  //     kdf: 'scrypt',
+  //     cipher: 'aes-128-ctr',
+  //   };
+  //   const keyObject = keythereum.dump(
+  //     password,
+  //     bareKey.privateKey,
+  //     bareKey.salt,
+  //     bareKey.iv,
+  //     options
+  //   );
+  //   // store keyObject
+  //   await setToAsyncStorage('keystore', JSON.stringify(keyObject));
+  //   return false;
+  // } catch (e) {
+  //   console.log(e);
+  //   return false;
+  // }
 }
 
 // delete privateKey against address
@@ -93,6 +106,15 @@ export function getPvtKey(keystore, password) {
   try {
     const key = extractPvtKey(keystore, password);
     return key;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
+
+export async function listAccounts() {
+  try {
+    return await geth.listAccounts();
   } catch (error) {
     console.log(error);
     throw error;

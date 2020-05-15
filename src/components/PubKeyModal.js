@@ -5,7 +5,6 @@ import QRCode from 'react-native-qrcode-svg';
 import Share from 'react-native-share';
 import Clipboard from '@react-native-community/clipboard';
 import PropTypes from 'prop-types';
-import {getFromAsyncStorage} from '../actions/utils';
 
 const styles = StyleSheet.create({
   layout: {
@@ -13,8 +12,17 @@ const styles = StyleSheet.create({
     flex: 1,
     width: Dimensions.get('window').width - 10,
   },
+  cpLayout: {
+    flex: 1,
+    flexDirection: 'row',
+    width: '100%',
+    justifyContent: 'space-evenly',
+  },
+  pubKeyContainer: {
+    width: '100%',
+  },
   pubKeyText: {
-    flex: 19,
+    textAlign: 'justify',
   },
   textBold: {
     fontWeight: '500',
@@ -44,29 +52,17 @@ const styles = StyleSheet.create({
     borderColor: 'red',
     height: 25,
   },
-  cpLayout: {
-    flex: 1,
-    flexDirection: 'row',
-    width: '100%',
-  },
 });
 
-const PubKeyModal = ({visible, setVisible, setError}) => {
+const PubKeyModal = ({address, visible, setVisible, setError}) => {
   const [pubKey, setPubKey] = useState('');
   const [svg, setSvg] = useState('');
   // ComponentDidMount
   useEffect(() => {
-    ToastAndroid.showWithGravity('Getting Public Key...', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
-    (async function () {
-      const keystore = JSON.parse(await getFromAsyncStorage('keystore'));
-      if (keystore) {
-        setPubKey(`0x${keystore.address}`);
-        setError('');
-      } else {
-        setError('Error getting Public Key for given keystore');
-      }
-    })();
+    setPubKey(address);
+    setError('');
   }, []);
+
   const shareQR = () => {
     const title = 'Ethential Wallet address';
     svg.toDataURL((dataURL) => {
@@ -106,7 +102,8 @@ const PubKeyModal = ({visible, setVisible, setError}) => {
             <Layout>
               <Layout style={styles.cpLayout}>
                 <Input
-                  style={styles.pubKeyText}
+                  style={styles.pubKeyContainer}
+                  textStyle={styles.pubKeyText}
                   disabled
                   value={pubKey}
                   accessoryRight={CopyIcon}
@@ -134,6 +131,7 @@ const PubKeyModal = ({visible, setVisible, setError}) => {
 };
 
 PubKeyModal.propTypes = {
+  address: PropTypes.string,
   visible: PropTypes.bool,
   setError: PropTypes.func,
   setVisible: PropTypes.func,

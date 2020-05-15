@@ -9,32 +9,32 @@ const styles = StyleSheet.create({
   },
 });
 
-const KsSelect = ({ksfiles, setKeystore}) => {
+const KsSelect = ({accounts, setAccount}) => {
   const [selectedIndex, setSelectedIndex] = useState(new IndexPath(0));
   const displayValue =
-    ksfiles[selectedIndex.row] && ksfiles[selectedIndex.row].name
-      ? ksfiles[selectedIndex.row].name
+    accounts[selectedIndex.row] && accounts[selectedIndex.row].address
+      ? accounts[selectedIndex.row].address
       : undefined;
 
-  const renderOption = (f) => <SelectItem title={f.name} key={f.name} />;
+  const renderOption = (f) => <SelectItem title={f.address} key={f.address} />;
 
   const handleSelect = (index) => {
     setSelectedIndex(index);
-    setKeystore(index);
+    setAccount(accounts[index - 1]);
   };
 
   return (
     <Layout style={styles.container} level="1">
       <Select selectedIndex={selectedIndex} onSelect={handleSelect} value={displayValue}>
-        {ksfiles.map(renderOption)}
+        {accounts.map(renderOption)}
       </Select>
     </Layout>
   );
 };
 
 KsSelect.propTypes = {
-  ksfiles: PropTypes.arrayOf(PropTypes.object),
-  setKeystore: PropTypes.func,
+  accounts: PropTypes.arrayOf(PropTypes.object),
+  setAccount: PropTypes.func,
 };
 
 export default KsSelect;
