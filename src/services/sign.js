@@ -4,13 +4,13 @@ import Geth from 'react-native-geth';
 import {sha3} from './hashUtils/sha3';
 import {removeFromAsyncStorage, setToAsyncStorage} from '../actions/utils';
 
-const geth = new Geth();
+const geth = new Geth({networkID: 5, testNet: 'goerli'});
 
 global.Buffer = Buffer;
 
 // const Buffer = require('buffer').Buffer;
-const EthereumTx = require('ethereumjs-tx').Transaction;
-const formatters = require('web3-core-helpers').formatters;
+// const EthereumTx = require('ethereumjs-tx').Transaction;
+// const formatters = require('web3-core-helpers').formatters;
 const keythereum = require('keythereum');
 
 // chainList for ethereumjs-tx
@@ -22,35 +22,22 @@ const chainList = {
 };
 
 // sign an unsigned raw transaction and deploy
-export function deployUnsignedTx(tx, privateKey, testnetId) {
+export async function deployUnsignedTx(password, tx, testnetId) {
   try {
-    const txData = formatters.inputTransactionFormatter(tx);
-    // TODO: this method should not work for ganache and prysm and throw error
-    const chainId = Number(testnetId) === 5 ? 6284 : Number(testnetId);
-    const unsignedTransaction = new EthereumTx(
-      {
-        from: txData.from || '0x',
-        nonce: txData.nonce || '0x',
-        gasPrice: txData.gasPrice | 0,
-        gas: txData.gas || '0x',
-        to: txData.to || '0x',
-        value: txData.value || '0x',
-        data: txData.data || '0x',
-        chainId,
-      },
-      {chain: chainList[Number(testnetId)]}
-    );
-    const pvtk = Buffer.from(privateKey, 'hex');
-    unsignedTransaction.sign(pvtk);
-    const rlpEncoded = unsignedTransaction.serialize().toString('hex');
-    const rawTransaction = `0x${rlpEncoded}`;
-    const transactionHash = sha3(rawTransaction);
-
+    console.log('deploy unsigned');
+    console.log(tx);
+    // desired
+    // const transaction = await geth.signTransaction(address, password, unsignedTransaction);
+    // const pvtk = Buffer.from(privateKey, 'hex');
+    // unsignedTransaction.sign(pvtk);
+    // const rlpEncoded = unsignedTransaction.serialize().toString('hex');
+    // const rawTransaction = `0x${rlpEncoded}`;
+    const signedTx = await geth.signTransaction(password, tx, testnetId);
     return {
-      transactionHash,
-      rawTransaction,
+      transaction: JSON.parse(signedTx),
     };
   } catch (e) {
+    console.log(e);
     return {
       Error: e,
     };
@@ -73,28 +60,6 @@ export async function createKeyPair(password) {
     console.log(error);
     return error;
   }
-
-  // try {
-  //   const params = {keyBytes: 32, ivBytes: 16};
-  //   const bareKey = keythereum.create(params);
-  //   const options = {
-  //     kdf: 'scrypt',
-  //     cipher: 'aes-128-ctr',
-  //   };
-  //   const keyObject = keythereum.dump(
-  //     password,
-  //     bareKey.privateKey,
-  //     bareKey.salt,
-  //     bareKey.iv,
-  //     options
-  //   );
-  //   // store keyObject
-  //   await setToAsyncStorage('keystore', JSON.stringify(keyObject));
-  //   return false;
-  // } catch (e) {
-  //   console.log(e);
-  //   return false;
-  // }
 }
 
 // delete privateKey against address

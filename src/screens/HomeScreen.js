@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import {Layout, Text, Button, Card, Icon, Input, Spinner, Select} from '@ui-kitten/components';
 import {deployUnsignedTx, createKeyPair, getPvtKey, listAccounts} from '../services/sign';
 import {setUnsignedTx, setRawTx, getAuthToken, setUnsignedTxHash, deploySignedTx} from '../actions';
-import {getUnsignedTx, setToAsyncStorage, getFromAsyncStorage} from '../actions/utils';
+import {getUnsignedTx, getFromAsyncStorage} from '../actions/utils';
 
 import QRScanner from '../components/QRScanner';
 import KeyModal from '../components/KeyModal';
@@ -52,7 +52,6 @@ const HomeScreen = (props) => {
   const [error, setError] = useState('');
   const [scan, setScan] = useState(false);
   const [showLoader, setShowLoader] = useState(false);
-  const [ksfiles, setKsFiles] = useState([]);
   const [showPwdPrompt, setShowPwdPrompt] = useState(false);
   const [accounts, setAccounts] = useState([]);
   const [account, setAccount] = useState({});
@@ -70,13 +69,6 @@ const HomeScreen = (props) => {
       }
     })();
   }, []);
-
-  const isJSONfile = (n) => {
-    if (n.split('.').pop() === 'json') {
-      return true;
-    }
-    return false;
-  };
 
   const searchAccounts = async () => {
     ToastAndroid.showWithGravity(
@@ -150,6 +142,8 @@ const HomeScreen = (props) => {
   // componentDidUpdate
   useEffect(() => {
     if (Object.keys(unsignedTxState).length === 0 && Object.keys(tx.unsignedTx).length > 0) {
+      console.log('unsigned tx');
+      console.log(tx.unsignedTx);
       setShowLoader(false);
       setUnsignedTxState(tx.unsignedTx);
     }
@@ -157,22 +151,22 @@ const HomeScreen = (props) => {
 
   const handleSignTx = async () => {
     setError('');
-    const privateKey = await getFromAsyncStorage('pvtKey');
-    if (!privateKey) {
-      setError('No Private Key Set');
-    } else if (privateKey !== '') {
+    if (!account) {
+      setError('No Account selected');
+    } else if (account.address !== '') {
       // For signing With private key.
       // Not to be confused with deploying unsigned Tx
-      const {transactionHash, rawTransaction, Error} = deployUnsignedTx(
-        unsignedTxState,
-        privateKey,
+      const {transaction, Error} = await deployUnsignedTx(
+        '', // password
+        tx.unsignedTx,
         networkId
       );
+      console.log(transaction);
       if (Error) {
         setError(Error.message);
       } else {
-        setTxHash(transactionHash);
-        props.setRawTx(rawTransaction);
+        setTxHash(transaction.hash);
+        props.setRawTx(JSON.stringify(transaction));
       }
     }
   };
