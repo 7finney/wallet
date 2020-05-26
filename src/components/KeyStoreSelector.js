@@ -9,7 +9,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const KsSelect = ({accounts, setAccount}) => {
+const KsSelect = ({accounts, setAccount, setKeyStore}) => {
   const [selectedIndex, setSelectedIndex] = useState(new IndexPath(0));
   const displayValue =
     accounts[selectedIndex.row] && accounts[selectedIndex.row].address
@@ -21,6 +21,13 @@ const KsSelect = ({accounts, setAccount}) => {
   const handleSelect = (index) => {
     setSelectedIndex(index);
     setAccount(accounts[index - 1]);
+    setKeyStore(index - 1)
+      .then(() => {
+        console.log('KeyStore set successful!');
+      })
+      .catch((e) => {
+        console.log(e);
+      });
   };
 
   return (
@@ -35,6 +42,7 @@ const KsSelect = ({accounts, setAccount}) => {
 KsSelect.propTypes = {
   accounts: PropTypes.arrayOf(PropTypes.object),
   setAccount: PropTypes.func,
+  setKeyStore: PropTypes.func,
 };
 
 export default KsSelect;

@@ -3,7 +3,7 @@ import {Dimensions, TouchableOpacity, ScrollView, ToastAndroid} from 'react-nati
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
 import {Layout, Text, Button, Card, Icon, Input, Spinner, Select} from '@ui-kitten/components';
-import {signTransaction, createKeyPair, getPvtKey, listAccounts} from '../services/sign';
+import {signTransaction, createKeyPair, getPvtKey, listAccounts, setKs} from '../services/sign';
 import {setUnsignedTx, setRawTx, getAuthToken, setUnsignedTxHash, deploySignedTx} from '../actions';
 import {getUnsignedTx, getFromAsyncStorage} from '../actions/utils';
 
@@ -287,7 +287,9 @@ const HomeScreen = (props) => {
           disabled
         />
         {/* Keystore files selector */}
-        {accounts.length > 0 && <KsSelect accounts={accounts} setAccount={setAccount} />}
+        {accounts.length > 0 && (
+          <KsSelect accounts={accounts} setAccount={setAccount} setKeyStore={setKs} />
+        )}
         <Layout>
           {pvtKey.length <= 0 && (
             <Layout>
