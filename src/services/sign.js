@@ -22,7 +22,7 @@ const chainList = {
 };
 
 // sign an unsigned raw transaction and deploy
-export async function deployUnsignedTx(password, tx, testnetId) {
+export async function signTransaction(password, tx, testnetId) {
   try {
     console.log('deploy unsigned');
     console.log(tx);

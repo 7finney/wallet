@@ -3,7 +3,7 @@ import {Dimensions, TouchableOpacity, ScrollView, ToastAndroid} from 'react-nati
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
 import {Layout, Text, Button, Card, Icon, Input, Spinner, Select} from '@ui-kitten/components';
-import {deployUnsignedTx, createKeyPair, getPvtKey, listAccounts} from '../services/sign';
+import {signTransaction, createKeyPair, getPvtKey, listAccounts} from '../services/sign';
 import {setUnsignedTx, setRawTx, getAuthToken, setUnsignedTxHash, deploySignedTx} from '../actions';
 import {getUnsignedTx, getFromAsyncStorage} from '../actions/utils';
 
@@ -142,8 +142,6 @@ const HomeScreen = (props) => {
   // componentDidUpdate
   useEffect(() => {
     if (Object.keys(unsignedTxState).length === 0 && Object.keys(tx.unsignedTx).length > 0) {
-      console.log('unsigned tx');
-      console.log(tx.unsignedTx);
       setShowLoader(false);
       setUnsignedTxState(tx.unsignedTx);
     }
@@ -156,7 +154,7 @@ const HomeScreen = (props) => {
     } else if (account.address !== '') {
       // For signing With private key.
       // Not to be confused with deploying unsigned Tx
-      const {transaction, Error} = await deployUnsignedTx(
+      const {transaction, Error} = await signTransaction(
         '', // password
         tx.unsignedTx,
         networkId
