@@ -422,14 +422,14 @@ const HomeScreen = (props) => {
                 <Card>
                   {txHash && (
                     <Layout>
-                      <Text appearance="hint">Transaction Hash: </Text>
+                      <Text appearance="hint">Transaction Hash:</Text>
                       <Text>{txHash}</Text>
                     </Layout>
                   )}
                   {tx.rawTx && (
                     <Layout>
-                      <Text appearance="hint">Raw Transaction: </Text>
-                      <Text>{JSON.stringify(tx.rawTx)}</Text>
+                      <Text appearance="hint">Raw Transaction:</Text>
+                      <Text>{tx.rawTx}</Text>
                     </Layout>
                   )}
                 </Card>
@@ -437,12 +437,12 @@ const HomeScreen = (props) => {
             )}
             {tx && Object.keys(tx.unsignedTx).length > 0 && (
               <Layout>
-                {txHash === '' && tx.rawTx === '' && (
+                {!(tx.rawTx.length > 0) && (
                   <Button style={styles.signBtn} onPress={handleSignTx}>
                     Sign Transaction
                   </Button>
                 )}
-                {tx.rawTx !== '' && (
+                {tx.rawTx.length > 0 && (
                   <Button style={styles.signBtn} onPress={handleDeployTx}>
                     Deploy Transaction
                   </Button>
