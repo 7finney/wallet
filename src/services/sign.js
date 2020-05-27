@@ -15,11 +15,10 @@ const keythereum = require('keythereum');
 // sign an unsigned raw transaction and deploy
 export async function signTransaction(password, tx) {
   try {
-    console.log('sign scanned transaction');
-    console.log(tx);
     const stx = await geth.signTransaction(password, tx);
+    console.log(stx);
     return {
-      transaction: JSON.parse(stx),
+      rawTransaction: `0x${stx}`,
     };
   } catch (e) {
     console.log(e);

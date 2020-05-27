@@ -154,17 +154,17 @@ const HomeScreen = (props) => {
     } else if (account.address !== '') {
       // For signing With private key.
       // Not to be confused with deploying unsigned Tx
-      const {transaction, Error} = await signTransaction(
+      const {rawTransaction, Error} = await signTransaction(
         '', // password
         tx.unsignedTx,
         networkId
       );
-      console.log(transaction);
+      console.log(rawTransaction);
       if (Error) {
         setError(Error.message);
       } else {
-        setTxHash(transaction.hash);
-        props.setRawTx(JSON.stringify(transaction));
+        // setTxHash(transaction.hash);
+        props.setRawTx(rawTransaction);
       }
     }
   };
@@ -420,30 +420,32 @@ const HomeScreen = (props) => {
                   padding: 10,
                 }}>
                 <Card>
-                  <Text appearance="hint">Transaction Hash: </Text>
-                  <Text>{txHash}</Text>
-                  <Text appearance="hint">Raw Transaction: </Text>
-                  <Text> {tx.rawTx}</Text>
+                  {txHash && (
+                    <Layout>
+                      <Text appearance="hint">Transaction Hash: </Text>
+                      <Text>{txHash}</Text>
+                    </Layout>
+                  )}
+                  {tx.rawTx && (
+                    <Layout>
+                      <Text appearance="hint">Raw Transaction: </Text>
+                      <Text>{JSON.stringify(tx.rawTx)}</Text>
+                    </Layout>
+                  )}
                 </Card>
               </Layout>
             )}
             {tx && Object.keys(tx.unsignedTx).length > 0 && (
               <Layout>
-                {txHash === '' ? (
-                  <Layout>
-                    <Button style={styles.signBtn} onPress={handleSignTx}>
-                      Sign Transaction
-                    </Button>
-                  </Layout>
-                ) : (
-                  <Layout>
-                    <Button style={[styles.signBtn, {backgroundColor: '#15348a'}]} disabled>
-                      Sign Transaction
-                    </Button>
-                    <Button style={styles.signBtn} onPress={handleDeployTx}>
-                      Deploy Transaction
-                    </Button>
-                  </Layout>
+                {txHash === '' && tx.rawTx === '' && (
+                  <Button style={styles.signBtn} onPress={handleSignTx}>
+                    Sign Transaction
+                  </Button>
+                )}
+                {tx.rawTx !== '' && (
+                  <Button style={styles.signBtn} onPress={handleDeployTx}>
+                    Deploy Transaction
+                  </Button>
                 )}
               </Layout>
             )}
