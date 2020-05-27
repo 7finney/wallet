@@ -413,20 +413,20 @@ const HomeScreen = (props) => {
                 </Card>
               </Layout>
             )}
-            {tx && txHash !== '' && tx.rawTx !== '' && (
+            {tx && tx.rawTx.length > 0 && (
               <Layout
                 style={{
                   marginBottom: 10,
                   padding: 10,
                 }}>
                 <Card>
-                  {txHash && (
+                  {/* {txHash && (
                     <Layout>
                       <Text appearance="hint">Transaction Hash:</Text>
                       <Text>{txHash}</Text>
                     </Layout>
-                  )}
-                  {tx.rawTx && (
+                  )} */}
+                  {tx.rawTx.length > 0 && (
                     <Layout>
                       <Text appearance="hint">Raw Transaction:</Text>
                       <Text>{tx.rawTx}</Text>
