@@ -154,16 +154,17 @@ const HomeScreen = (props) => {
     } else if (account.address !== '') {
       // For signing With private key.
       // Not to be confused with deploying unsigned Tx
-      const {rawTransaction, Error} = await signTransaction(
+      const {transaction, rawTransaction, Error} = await signTransaction(
         '', // password
         tx.unsignedTx,
         networkId
       );
+      console.log(transaction);
       console.log(rawTransaction);
       if (Error) {
         setError(Error.message);
       } else {
-        // setTxHash(transaction.hash);
+        setTxHash(transaction.hash);
         props.setRawTx(rawTransaction);
       }
     }
@@ -420,12 +421,12 @@ const HomeScreen = (props) => {
                   padding: 10,
                 }}>
                 <Card>
-                  {/* {txHash && (
+                  {txHash && (
                     <Layout>
                       <Text appearance="hint">Transaction Hash:</Text>
                       <Text>{txHash}</Text>
                     </Layout>
-                  )} */}
+                  )}
                   {tx.rawTx.length > 0 && (
                     <Layout>
                       <Text appearance="hint">Raw Transaction:</Text>
