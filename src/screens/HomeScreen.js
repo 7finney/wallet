@@ -3,7 +3,14 @@ import {Dimensions, TouchableOpacity, ScrollView, ToastAndroid} from 'react-nati
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
 import {Layout, Text, Button, Card, Icon, Input, Spinner, Select} from '@ui-kitten/components';
-import {signTransaction, createKeyPair, getPvtKey, listAccounts, setKs} from '../services/sign';
+import {
+  signTransaction,
+  createKeyPair,
+  getPvtKey,
+  listAccounts,
+  setKs,
+  deleteKeyPair,
+} from '../services/sign';
 import {setUnsignedTx, setRawTx, getAuthToken, setUnsignedTxHash, deploySignedTx} from '../actions';
 import {getUnsignedTx, getFromAsyncStorage} from '../actions/utils';
 
@@ -48,6 +55,8 @@ const HomeScreen = (props) => {
   const [unsignedTxState, setUnsignedTxState] = useState({});
   const [pvtKey, setPvtKey] = useState('');
   const [createModal, setCreateModal] = useState(false);
+  const [deleteModal, setDeleteModal] = useState(false);
+  const [signModal, setSignModal] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState('');
   const [scan, setScan] = useState(false);
@@ -147,7 +156,7 @@ const HomeScreen = (props) => {
     }
   });
 
-  const handleSignTx = async () => {
+  const handleSignTx = async (password) => {
     setError('');
     if (!account) {
       setError('No Account selected');
@@ -155,12 +164,10 @@ const HomeScreen = (props) => {
       // For signing With private key.
       // Not to be confused with deploying unsigned Tx
       const {transaction, rawTransaction, Error} = await signTransaction(
-        '', // password
+        password,
         tx.unsignedTx,
         networkId
       );
-      console.log(transaction);
-      console.log(rawTransaction);
       if (Error) {
         setError(Error.message);
       } else {
@@ -229,20 +236,8 @@ const HomeScreen = (props) => {
       });
   };
 
-  const handleDeleteKeyStore = async () => {
-    const keystore = JSON.parse(await getFromAsyncStorage('keystore'));
-    const path = `${RNFS.DocumentDirectoryPath}/${keystore.address}.json`;
-    RNFS.unlink(path)
-      .then(() => {
-        setPvtKey('');
-        setError('Private Key Deleted Successfully!');
-        searchAccounts();
-      })
-      .catch((err) => {
-        console.log(err);
-        setPvtKey('');
-        setError('Unable To delete Keystore file!');
-      });
+  const handleDeleteKeyStore = async (password) => {
+    deleteKeyPair(password);
   };
 
   const saveKeystore = async () => {
@@ -300,7 +295,7 @@ const HomeScreen = (props) => {
           {Object.keys(account).length > 0 && (
             <Layout>
               <Button onPress={() => setShowModal(true)}>Show Public Key</Button>
-              <Button onPress={handleDeleteKeyStore}>Delete Current Account</Button>
+              <Button onPress={() => setDeleteModal(true)}>Delete Current Account</Button>
             </Layout>
           )}
           {pvtKey.length > 0 && (
@@ -313,7 +308,24 @@ const HomeScreen = (props) => {
           <KeyModal
             visible={createModal}
             setVisible={setCreateModal}
-            handleGenerate={handleGenerateKeyPair}
+            handleOk={handleGenerateKeyPair}
+            okBtnTxt="Generate"
+          />
+        )}
+        {deleteModal && (
+          <KeyModal
+            visible={deleteModal}
+            setVisible={setDeleteModal}
+            handleOk={handleDeleteKeyStore}
+            okBtnTxt="Delete"
+          />
+        )}
+        {signModal && (
+          <KeyModal
+            visible={signModal}
+            setVisible={setSignModal}
+            handleOk={handleSignTx}
+            okBtnTxt="Sign"
           />
         )}
         {Object.keys(account).length > 0 && showModal && (
@@ -439,7 +451,7 @@ const HomeScreen = (props) => {
             {tx && Object.keys(tx.unsignedTx).length > 0 && (
               <Layout>
                 {!(tx.rawTx.length > 0) && (
-                  <Button style={styles.signBtn} onPress={handleSignTx}>
+                  <Button style={styles.signBtn} onPress={() => setSignModal(true)}>
                     Sign Transaction
                   </Button>
                 )}

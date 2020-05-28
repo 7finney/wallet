@@ -1,7 +1,7 @@
 // eslint-disable-next-line import/extensions
 import {Buffer} from 'buffer';
 import Geth from 'react-native-geth';
-import {removeFromAsyncStorage, setToAsyncStorage} from '../actions/utils';
+import {setToAsyncStorage} from '../actions/utils';
 
 const geth = new Geth({networkID: 5, testNet: 'goerli'});
 
@@ -47,8 +47,17 @@ export async function createKeyPair(password) {
 }
 
 // delete privateKey against address
-export function deleteKeyPair(publicKey) {
-  return removeFromAsyncStorage(publicKey);
+export function deleteKeyPair(password) {
+  geth
+    .deleteAccount(password)
+    .then(() => {
+      console.log('Account deleted!');
+      return true;
+    })
+    .catch((e) => {
+      throw e;
+    });
+  // return removeFromAsyncStorage(publicKey);
 }
 
 export function getPvtKey(keystore, password) {

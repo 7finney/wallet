@@ -6475,8 +6475,9 @@ react-native-fs@^2.16.6:
     base-64 "^0.1.0"
     utf8 "^3.0.0"
 
-react-native-geth@/home/0mkar/Karma/react-native-geth:
+"react-native-geth@https://github.com/0mkara/react-native-geth":
   version "0.1.0-development"
+  resolved "https://github.com/0mkara/react-native-geth#ddd6077169e10d3bddf609a80058899db4e0c113"
 
 react-native-level-fs@^3.0.1:
   version "3.0.1"

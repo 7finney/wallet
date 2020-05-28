@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const KeyModal = ({visible, handleGenerate, setVisible}) => {
+const KeyModal = ({visible, handleOk, setVisible, okBtnTxt}) => {
   const [showPassword, setShowPassword] = useState(false);
   const [password, setPassword] = useState('');
   const InputEyeIcon = (props) => (
@@ -78,9 +78,9 @@ const KeyModal = ({visible, handleGenerate, setVisible}) => {
           <Button
             onPress={() => {
               setVisible(false);
-              handleGenerate(password);
+              handleOk(password);
             }}>
-            Generate
+            {okBtnTxt}
           </Button>
           <Button
             onPress={() => {
@@ -97,8 +97,9 @@ const KeyModal = ({visible, handleGenerate, setVisible}) => {
 
 KeyModal.propTypes = {
   visible: PropTypes.bool,
-  handleGenerate: PropTypes.func,
+  handleOk: PropTypes.func,
   setVisible: PropTypes.func,
+  okBtnTxt: PropTypes.string,
 };
 
 export default KeyModal;
