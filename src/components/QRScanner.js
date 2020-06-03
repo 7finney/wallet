@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import QRCodeScanner from 'react-native-qrcode-scanner';
-import { TouchableOpacity, Text, StyleSheet, View } from 'react-native';
+import {TouchableOpacity, Text, StyleSheet, View} from 'react-native';
 
 const styles = StyleSheet.create({
   centerText: {
@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const QRScanner = ({ onSuccess }) => {
+const QRScanner = ({onSuccess}) => {
   const [dismiss, setDismiss] = useState(false);
 
   return (
@@ -48,7 +48,9 @@ const QRScanner = ({ onSuccess }) => {
               }}
               style={styles.buttonTouchable}>
               <View>
-                <Text style={styles.textBold} h3>Scan Your Transaction QR</Text>
+                <Text style={styles.textBold} h3>
+                  Scan Your Transaction QR
+                </Text>
               </View>
               <View>
                 <Text style={styles.buttonText}>OK. Got it!</Text>
@@ -56,8 +58,8 @@ const QRScanner = ({ onSuccess }) => {
             </TouchableOpacity>
           </View>
         ) : (
-            <View />
-          )
+          <View />
+        )
       }
     />
   );

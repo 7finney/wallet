@@ -3,9 +3,16 @@ import {Dimensions, TouchableOpacity, ScrollView, ToastAndroid} from 'react-nati
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
 import {Layout, Text, Button, Card, Icon, Input, Spinner, Select} from '@ui-kitten/components';
-import {deployUnsignedTx, createKeyPair, getPvtKey} from '../services/sign';
+import {
+  signTransaction,
+  createKeyPair,
+  getPvtKey,
+  listAccounts,
+  setKs,
+  deleteKeyPair,
+} from '../services/sign';
 import {setUnsignedTx, setRawTx, getAuthToken, setUnsignedTxHash, deploySignedTx} from '../actions';
-import {getUnsignedTx, setToAsyncStorage, getFromAsyncStorage} from '../actions/utils';
+import {getUnsignedTx, getFromAsyncStorage} from '../actions/utils';
 
 import QRScanner from '../components/QRScanner';
 import KeyModal from '../components/KeyModal';
@@ -48,12 +55,15 @@ const HomeScreen = (props) => {
   const [unsignedTxState, setUnsignedTxState] = useState({});
   const [pvtKey, setPvtKey] = useState('');
   const [createModal, setCreateModal] = useState(false);
+  const [deleteModal, setDeleteModal] = useState(false);
+  const [signModal, setSignModal] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState('');
   const [scan, setScan] = useState(false);
   const [showLoader, setShowLoader] = useState(false);
-  const [ksfiles, setKsFiles] = useState([]);
   const [showPwdPrompt, setShowPwdPrompt] = useState(false);
+  const [accounts, setAccounts] = useState([]);
+  const [account, setAccount] = useState({});
 
   // ComponentDidMount
   useEffect(() => {
@@ -69,32 +79,19 @@ const HomeScreen = (props) => {
     })();
   }, []);
 
-  const isJSONfile = (n) => {
-    if (n.split('.').pop() === 'json') {
-      return true;
-    }
-    return false;
-  };
-
-  const searchKsFiles = () => {
+  const searchAccounts = async () => {
     ToastAndroid.showWithGravity(
       'Looking for saved Keystores',
       ToastAndroid.SHORT,
       ToastAndroid.BOTTOM
     );
-    RNFS.readDir(RNFS.DocumentDirectoryPath)
-      .then((results) => {
-        const files = results.filter((result) => result.isFile() && isJSONfile(result.name));
-        setKsFiles(files);
-      })
-      .catch((err) => {
-        throw err;
-      });
+    const a = await listAccounts();
+    setAccounts(a);
   };
 
   // First read keystore files from DocumentDirectory
   useEffect(() => {
-    searchKsFiles();
+    searchAccounts();
   }, []);
 
   // ComponentDidUpdate for tx.unsignedTxHash. Triggers on tx Hash change
@@ -159,23 +156,22 @@ const HomeScreen = (props) => {
     }
   });
 
-  const handleSignTx = async () => {
+  const handleSignTx = async (password) => {
     setError('');
-    const privateKey = await getFromAsyncStorage('pvtKey');
-    if (!privateKey) {
-      setError('No Private Key Set');
-    } else if (privateKey !== '') {
+    if (!account) {
+      setError('No Account selected');
+    } else if (account.address !== '') {
       // For signing With private key.
       // Not to be confused with deploying unsigned Tx
-      const {transactionHash, rawTransaction, Error} = deployUnsignedTx(
-        unsignedTxState,
-        privateKey,
+      const {transaction, rawTransaction, Error} = await signTransaction(
+        password,
+        tx.unsignedTx,
         networkId
       );
       if (Error) {
         setError(Error.message);
       } else {
-        setTxHash(transactionHash);
+        setTxHash(transaction.hash);
         props.setRawTx(rawTransaction);
       }
     }
@@ -233,27 +229,15 @@ const HomeScreen = (props) => {
     setShowLoader(true);
     createKeyPair(password)
       .then(async () => {
-        loadPvtKey(password);
+        // loadPvtKey(password);
       })
       .catch((e) => {
         setError('Error Generating Private Key: ', e.message);
       });
   };
 
-  const handleDeleteKeyStore = async () => {
-    const keystore = JSON.parse(await getFromAsyncStorage('keystore'));
-    const path = `${RNFS.DocumentDirectoryPath}/${keystore.address}.json`;
-    RNFS.unlink(path)
-      .then(() => {
-        setPvtKey('');
-        setError('Private Key Deleted Successfully!');
-        searchKsFiles();
-      })
-      .catch((err) => {
-        console.log(err);
-        setPvtKey('');
-        setError('Unable To delete Keystore file!');
-      });
+  const handleDeleteKeyStore = async (password) => {
+    deleteKeyPair(password);
   };
 
   const saveKeystore = async () => {
@@ -262,30 +246,13 @@ const HomeScreen = (props) => {
     RNFS.writeFile(path, JSON.stringify(keystore), 'utf8')
       .then(() => {
         ToastAndroid.showWithGravity('Keystore saved!', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
-        searchKsFiles();
+        searchAccounts();
       })
       .catch((err) => {
         ToastAndroid.showWithGravity(err.message, ToastAndroid.LONG, ToastAndroid.BOTTOM);
       });
   };
 
-  const setKeystore = (index) => {
-    setShowLoader(true);
-    const p = ksfiles[index.row].path;
-    ToastAndroid.showWithGravity(
-      'Loading key from file...',
-      ToastAndroid.SHORT,
-      ToastAndroid.BOTTOM
-    );
-    RNFS.readFile(p, 'utf8')
-      .then(async (keyObject) => {
-        await setToAsyncStorage('keystore', keyObject);
-        setShowPwdPrompt(true);
-      })
-      .catch((e) => {
-        console.error(e);
-      });
-  };
   const handleUnlock = (password) => {
     loadPvtKey(password);
   };
@@ -312,21 +279,23 @@ const HomeScreen = (props) => {
         <Input
           label="Private Key"
           placeholder="Your Private key will appear here!"
-          value={pvtKey}
+          value={account.address}
           disabled
         />
         {/* Keystore files selector */}
-        {ksfiles.length > 0 && <KsSelect ksfiles={ksfiles} setKeystore={setKeystore} />}
+        {accounts.length > 0 && (
+          <KsSelect accounts={accounts} setAccount={setAccount} setKeyStore={setKs} />
+        )}
         <Layout>
           {pvtKey.length <= 0 && (
             <Layout>
               <Button onPress={() => setCreateModal(true)}>Generate Account Key/Pair</Button>
             </Layout>
           )}
-          {pvtKey.length > 0 && (
+          {Object.keys(account).length > 0 && (
             <Layout>
               <Button onPress={() => setShowModal(true)}>Show Public Key</Button>
-              <Button onPress={handleDeleteKeyStore}>Delete Current Account</Button>
+              <Button onPress={() => setDeleteModal(true)}>Delete Current Account</Button>
             </Layout>
           )}
           {pvtKey.length > 0 && (
@@ -339,11 +308,33 @@ const HomeScreen = (props) => {
           <KeyModal
             visible={createModal}
             setVisible={setCreateModal}
-            handleGenerate={handleGenerateKeyPair}
+            handleOk={handleGenerateKeyPair}
+            okBtnTxt="Generate"
           />
         )}
-        {showModal && (
-          <PubKeyModal visible={showModal} setVisible={setShowModal} setError={setError} />
+        {deleteModal && (
+          <KeyModal
+            visible={deleteModal}
+            setVisible={setDeleteModal}
+            handleOk={handleDeleteKeyStore}
+            okBtnTxt="Delete"
+          />
+        )}
+        {signModal && (
+          <KeyModal
+            visible={signModal}
+            setVisible={setSignModal}
+            handleOk={handleSignTx}
+            okBtnTxt="Sign"
+          />
+        )}
+        {Object.keys(account).length > 0 && showModal && (
+          <PubKeyModal
+            address={account.address}
+            visible={showModal}
+            setVisible={setShowModal}
+            setError={setError}
+          />
         )}
         {showPwdPrompt && (
           <PwdPrompt
@@ -435,37 +426,39 @@ const HomeScreen = (props) => {
                 </Card>
               </Layout>
             )}
-            {tx && txHash !== '' && tx.rawTx !== '' && (
+            {tx && tx.rawTx.length > 0 && (
               <Layout
                 style={{
                   marginBottom: 10,
                   padding: 10,
                 }}>
                 <Card>
-                  <Text appearance="hint">Transaction Hash: </Text>
-                  <Text>{txHash}</Text>
-                  <Text appearance="hint">Raw Transaction: </Text>
-                  <Text> {tx.rawTx}</Text>
+                  {txHash && (
+                    <Layout>
+                      <Text appearance="hint">Transaction Hash:</Text>
+                      <Text>{txHash}</Text>
+                    </Layout>
+                  )}
+                  {tx.rawTx.length > 0 && (
+                    <Layout>
+                      <Text appearance="hint">Raw Transaction:</Text>
+                      <Text>{tx.rawTx}</Text>
+                    </Layout>
+                  )}
                 </Card>
               </Layout>
             )}
             {tx && Object.keys(tx.unsignedTx).length > 0 && (
               <Layout>
-                {txHash === '' ? (
-                  <Layout>
-                    <Button style={styles.signBtn} onPress={handleSignTx}>
-                      Sign Transaction
-                    </Button>
-                  </Layout>
-                ) : (
-                  <Layout>
-                    <Button style={[styles.signBtn, {backgroundColor: '#15348a'}]} disabled>
-                      Sign Transaction
-                    </Button>
-                    <Button style={styles.signBtn} onPress={handleDeployTx}>
-                      Deploy Transaction
-                    </Button>
-                  </Layout>
+                {!(tx.rawTx.length > 0) && (
+                  <Button style={styles.signBtn} onPress={() => setSignModal(true)}>
+                    Sign Transaction
+                  </Button>
+                )}
+                {tx.rawTx.length > 0 && (
+                  <Button style={styles.signBtn} onPress={handleDeployTx}>
+                    Deploy Transaction
+                  </Button>
                 )}
               </Layout>
             )}

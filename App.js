@@ -1,9 +1,9 @@
 import React from 'react';
-import { ApplicationProvider, IconRegistry } from '@ui-kitten/components';
-import { mapping, light as lightTheme } from '@eva-design/eva';
-import { EvaIconsPack } from '@ui-kitten/eva-icons';
-import { StatusBar } from 'react-native';
-import { Provider } from 'react-redux';
+import {ApplicationProvider, IconRegistry} from '@ui-kitten/components';
+import {mapping, light as lightTheme} from '@eva-design/eva';
+import {EvaIconsPack} from '@ui-kitten/eva-icons';
+import {StatusBar} from 'react-native';
+import {Provider} from 'react-redux';
 import HomeScreen from './src/screens/HomeScreen';
 import configureStore from './src/configureStore';
 

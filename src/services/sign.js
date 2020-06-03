@@ -1,53 +1,27 @@
 // eslint-disable-next-line import/extensions
 import {Buffer} from 'buffer';
-import {sha3} from './hashUtils/sha3';
-import {removeFromAsyncStorage, setToAsyncStorage} from '../actions/utils';
+import Geth from 'react-native-geth';
+import {setToAsyncStorage} from '../actions/utils';
+
+const geth = new Geth({networkID: 5, testNet: 'goerli'});
 
 global.Buffer = Buffer;
 
 // const Buffer = require('buffer').Buffer;
-const EthereumTx = require('ethereumjs-tx').Transaction;
-const formatters = require('web3-core-helpers').formatters;
+// const EthereumTx = require('ethereumjs-tx').Transaction;
+// const formatters = require('web3-core-helpers').formatters;
 const keythereum = require('keythereum');
 
-// chainList for ethereumjs-tx
-const chainList = {
-  1: 'mainnet',
-  3: 'ropsten',
-  4: 'rinkeby',
-  5: 'goerli',
-};
-
 // sign an unsigned raw transaction and deploy
-export function deployUnsignedTx(tx, privateKey, testnetId) {
+export async function signTransaction(password, tx) {
   try {
-    const txData = formatters.inputTransactionFormatter(tx);
-    // TODO: this method should not work for ganache and prysm and throw error
-    const chainId = Number(testnetId) === 5 ? 6284 : Number(testnetId);
-    const unsignedTransaction = new EthereumTx(
-      {
-        from: txData.from || '0x',
-        nonce: txData.nonce || '0x',
-        gasPrice: txData.gasPrice | 0,
-        gas: txData.gas || '0x',
-        to: txData.to || '0x',
-        value: txData.value || '0x',
-        data: txData.data || '0x',
-        chainId,
-      },
-      {chain: chainList[Number(testnetId)]}
-    );
-    const pvtk = Buffer.from(privateKey, 'hex');
-    unsignedTransaction.sign(pvtk);
-    const rlpEncoded = unsignedTransaction.serialize().toString('hex');
-    const rawTransaction = `0x${rlpEncoded}`;
-    const transactionHash = sha3(rawTransaction);
-
+    const {transaction, raw} = await geth.signTransaction(password, tx);
     return {
-      transactionHash,
-      rawTransaction,
+      transaction: JSON.parse(transaction),
+      rawTransaction: `0x${raw}`,
     };
   } catch (e) {
+    console.log(e);
     return {
       Error: e,
     };
@@ -62,37 +36,52 @@ function extractPvtKey(keyObject, pswd) {
 // create keypair and saves to AsyncStorage for now
 export async function createKeyPair(password) {
   try {
-    const params = {keyBytes: 32, ivBytes: 16};
-    const bareKey = keythereum.create(params);
-    const options = {
-      kdf: 'scrypt',
-      cipher: 'aes-128-ctr',
-    };
-    const keyObject = keythereum.dump(
-      password,
-      bareKey.privateKey,
-      bareKey.salt,
-      bareKey.iv,
-      options
-    );
-    // store keyObject
+    const keyObject = await geth.newAccount(password);
+    console.log(keyObject);
     await setToAsyncStorage('keystore', JSON.stringify(keyObject));
-    return false;
-  } catch (e) {
-    console.log(e);
-    return false;
+    return keyObject;
+  } catch (error) {
+    console.log(error);
+    return error;
   }
 }
 
 // delete privateKey against address
-export function deleteKeyPair(publicKey) {
-  return removeFromAsyncStorage(publicKey);
+export function deleteKeyPair(password) {
+  geth
+    .deleteAccount(password)
+    .then(() => {
+      console.log('Account deleted!');
+      return true;
+    })
+    .catch((e) => {
+      throw e;
+    });
+  // return removeFromAsyncStorage(publicKey);
 }
 
 export function getPvtKey(keystore, password) {
   try {
     const key = extractPvtKey(keystore, password);
     return key;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
+
+export async function listAccounts() {
+  try {
+    return await geth.listAccounts();
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
+
+export async function setKs(ksIndex) {
+  try {
+    return await geth.setAccount(ksIndex);
   } catch (error) {
     console.log(error);
     throw error;
