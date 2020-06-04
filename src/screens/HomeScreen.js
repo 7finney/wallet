@@ -112,12 +112,12 @@ const HomeScreen = (props) => {
             props.setUnsignedTx(JSON.parse(unsignedTX));
           } else {
             props.setLoaderStatus(false);
-            setErrorStatus('Invalid Transaction');
+            props.setErrorStatus('Invalid Transaction');
           }
         })
         .catch(() => {
           props.setLoaderStatus(false);
-          setErrorStatus('Error Getting Transaction');
+          props.setErrorStatus('Error Getting Transaction');
         });
     }
   }, [tx.unsignedTxHash]);
@@ -126,10 +126,10 @@ const HomeScreen = (props) => {
   useEffect(() => {
     if (tx.txReceipt.Error) {
       const msg = tx.txReceipt.Error.split('=').slice(-1)[0];
-      setErrorStatus(msg);
+      props.setErrorStatus(msg);
     }
     if (tx.txReceipt.Status) {
-      setErrorStatus(tx.txReceipt.Status);
+      props.setErrorStatus(tx.txReceipt.Status);
     }
     props.setLoaderStatus(false);
   }, [tx.txReceipt]);
@@ -165,9 +165,9 @@ const HomeScreen = (props) => {
   });
 
   const handleSignTx = async (password) => {
-    setErrorStatus('');
+    props.setErrorStatus('');
     if (!account) {
-      setErrorStatus('No Account selected');
+      props.setErrorStatus('No Account selected');
     } else if (account.address !== '') {
       // For signing With private key.
       // Not to be confused with deploying unsigned Tx
@@ -177,7 +177,7 @@ const HomeScreen = (props) => {
         networkId
       );
       if (Error) {
-        setErrorStatus(Error.message);
+        props.setErrorStatus(Error.message);
       } else {
         setTxHash(transaction.hash);
         props.setRawTx(rawTransaction);
@@ -195,27 +195,28 @@ const HomeScreen = (props) => {
 
   const handleScanner = (e) => {
     setScan(false);
-    setErrorStatus('');
+    props.setErrorStatus('');
     try {
       props.setLoaderStatus(true);
       props.setUnsignedTxHash(e.data);
     } catch (err) {
-      setErrorStatus('Invalid Transaction');
-      setTimeout(() => setErrorStatus(''), 5000);
+      props.setErrorStatus('Invalid Transaction');
+      setTimeout(() => props.setErrorStatus(''), 5000);
     }
   };
 
   const handleDeployTx = () => {
     if (tx.rawTx !== '' && auth.token !== '') {
-      setErrorStatus('');
+      props.setErrorStatus('');
       props.setLoaderStatus(true);
       props.deploySignedTx(tx.rawTx, networkId, auth.token);
     } else {
-      setErrorStatus('Maybe Transaction not signed or no auth token generated');
+      props.setErrorStatus('Maybe Transaction not signed or no auth token generated');
     }
   };
 
   const loadPvtKey = async (password) => {
+    props.setLoaderStatus(true);
     const keystore = JSON.parse(await getFromAsyncStorage('keystore'));
     ToastAndroid.showWithGravity(
       'Unlocking private key with password!',
@@ -225,10 +226,10 @@ const HomeScreen = (props) => {
     try {
       const pk = getPvtKey(keystore, password);
       setPvtKey(pk);
-      setErrorStatus('');
+      props.setErrorStatus('');
       ToastAndroid.showWithGravity('Private key loaded!', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
     } catch (err) {
-      setErrorStatus(err.message);
+      props.setErrorStatus(err.message);
     }
     props.setLoaderStatus(false);
   };
@@ -238,14 +239,18 @@ const HomeScreen = (props) => {
     createKeyPair(password)
       .then(async () => {
         // loadPvtKey(password);
+        props.setLoaderStatus(false);
       })
       .catch((e) => {
-        setErrorStatus('Error Generating Private Key: ', e.message);
+        props.setLoaderStatus(false);
+        props.setErrorStatus('Error Generating Private Key: ', e.message);
       });
   };
 
   const handleDeleteKeyStore = async (password) => {
-    deleteKeyPair(password);
+    props.setLoaderStatus(true);
+    await deleteKeyPair(password);
+    props.setLoaderStatus(false);
   };
 
   const saveKeystore = async () => {
@@ -333,7 +338,7 @@ const HomeScreen = (props) => {
             address={account.address}
             visible={showModal}
             setVisible={setShowModal}
-            setErrorStatus={setErrorStatus}
+            setError={props.setErrorStatus}
           />
         )}
         {showPwdPrompt && (
@@ -497,7 +502,7 @@ const HomeScreen = (props) => {
         }}
         onPress={() => {
           setScan(!scan);
-          setErrorStatus('');
+          props.setErrorStatus('');
           setTxHash('');
           setUnsignedTxState({});
           props.setRawTx('');
@@ -520,6 +525,7 @@ HomeScreen.propTypes = {
   getAuthToken: PropTypes.func,
   deploySignedTx: PropTypes.func,
   setLoaderStatus: PropTypes.func,
+  setErrorStatus: PropTypes.func,
   // eslint-disable-next-line react/forbid-prop-types
   auth: PropTypes.any,
   // eslint-disable-next-line react/forbid-prop-types

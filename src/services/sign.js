@@ -55,7 +55,7 @@ export function deleteKeyPair(password) {
       return true;
     })
     .catch((e) => {
-      throw e;
+      return false;
     });
   // return removeFromAsyncStorage(publicKey);
 }
