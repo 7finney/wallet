@@ -264,11 +264,7 @@ const HomeScreen = (props) => {
           Wallet
         </Text>
       </Layout>
-      {showLoader && (
-        <Layout style={styles.spinner}>
-          <Spinner size="large" />
-        </Layout>
-      )}
+      <Loader />
       {error !== '' && (
         <Layout style={styles.error}>
           <Text style={{textAlign: 'center', color: '#fff', fontSize: 18}}>{error}</Text>
