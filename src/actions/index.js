@@ -1,4 +1,11 @@
-import {DEPLOY_SIGNED_TX, RAW_TX, SET_AUTH_TOKEN, UNSIGNED_TX, UNSIGNED_TX_HASH} from './types';
+import {
+  DEPLOY_SIGNED_TX,
+  RAW_TX,
+  SET_AUTH_TOKEN, SET_ERROR_STATUS,
+  SET_LOADER_STATUS,
+  UNSIGNED_TX,
+  UNSIGNED_TX_HASH,
+} from './types';
 import {
   deployTransaction,
   getFromAsyncStorage,
@@ -78,3 +85,19 @@ export const deploySignedTx = (rawTx, networkId) => async (dispatch) => {
     dispatch({type: DEPLOY_SIGNED_TX, payload: result.data});
   }
 };
+
+/**
+ * Sets The Loader status
+ * @param data
+ */
+export const setLoaderStatus = (data) => dispatch => {
+  dispatch({type: SET_LOADER_STATUS, payload: data})
+}
+
+/**
+ * Sets the Error MSG
+ * @param data
+ */
+export const setErrorStatus = data => dispatch => {
+  dispatch({type: SET_ERROR_STATUS, payload: data})
+}

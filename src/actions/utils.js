@@ -14,7 +14,7 @@ axios.interceptors.request.use((request) => {
  */
 export function getToken() {
   const appId = uuid.v1();
-  const url = `http://192.168.0.5:4550/api/v0/genToken/${appId}`;
+  const url = `http://192.168.43.212:4550/api/v0/genToken/${appId}`;
   return axios
     .get(url)
     .then((response) => {
@@ -91,7 +91,7 @@ export async function removeFromAsyncStorage(key) {
  */
 export async function getUnsignedTx(txHash, authToken) {
   try {
-    const url = `http://192.168.0.5:4550/api/v0/getUnsignedTx/${txHash}`;
+    const url = `http://192.168.43.212:4550/api/v0/getUnsignedTx/${txHash}`;
     const response = await axios.get(url, {
       headers: {
         authorization: `Bearer ${authToken}`,

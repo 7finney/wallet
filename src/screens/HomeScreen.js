@@ -11,9 +11,17 @@ import {
   setKs,
   deleteKeyPair,
 } from '../services/sign';
-import {setUnsignedTx, setRawTx, getAuthToken, setUnsignedTxHash, deploySignedTx} from '../actions';
+import {
+  setUnsignedTx,
+  setRawTx,
+  getAuthToken,
+  setUnsignedTxHash,
+  deploySignedTx,
+  setLoaderStatus,
+  setErrorStatus,
+} from '../actions';
 import {getUnsignedTx, getFromAsyncStorage} from '../actions/utils';
-
+import Loader from '../components/Loader';
 import QRScanner from '../components/QRScanner';
 import KeyModal from '../components/KeyModal';
 import PubKeyModal from '../components/PubKeyModal';
@@ -60,7 +68,6 @@ const HomeScreen = (props) => {
   const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState('');
   const [scan, setScan] = useState(false);
-  const [showLoader, setShowLoader] = useState(false);
   const [showPwdPrompt, setShowPwdPrompt] = useState(false);
   const [accounts, setAccounts] = useState([]);
   const [account, setAccount] = useState({});
@@ -68,7 +75,7 @@ const HomeScreen = (props) => {
   // ComponentDidMount
   useEffect(() => {
     ToastAndroid.showWithGravity('Fetching AuthToken', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
-    setShowLoader(true);
+    props.setLoaderStatus(true);
     props.getAuthToken();
     // Get Private key from async storage on component mount
     (async function () {
@@ -80,6 +87,7 @@ const HomeScreen = (props) => {
   }, []);
 
   const searchAccounts = async () => {
+    props.setLoaderStatus(true)
     ToastAndroid.showWithGravity(
       'Looking for saved Keystores',
       ToastAndroid.SHORT,
@@ -97,18 +105,18 @@ const HomeScreen = (props) => {
   // ComponentDidUpdate for tx.unsignedTxHash. Triggers on tx Hash change
   useEffect(() => {
     if (tx.unsignedTxHash !== undefined && tx.unsignedTxHash !== '' && auth.token !== '') {
-      setShowLoader(true);
+      props.setLoaderStatus(true);
       getUnsignedTx(tx.unsignedTxHash, auth.token)
         .then((unsignedTX) => {
           if (unsignedTX) {
             props.setUnsignedTx(JSON.parse(unsignedTX));
           } else {
-            setShowLoader(false);
+            props.setLoaderStatus(false);
             setError('Invalid Transaction');
           }
         })
         .catch(() => {
-          setShowLoader(false);
+          props.setLoaderStatus(false);
           setError('Error Getting Transaction');
         });
     }
@@ -123,17 +131,17 @@ const HomeScreen = (props) => {
     if (tx.txReceipt.Status) {
       setError(tx.txReceipt.Status);
     }
-    setShowLoader(false);
+    props.setLoaderStatus(false);
   }, [tx.txReceipt]);
 
   const prevAuth = usePrevious({auth});
   // ComponentDidUpdate for auth. Triggers on auth change
   useEffect(() => {
     if (auth.token !== '' && auth.token !== undefined && prevAuth.auth.token !== auth.token) {
-      setShowLoader(false);
+      props.setLoaderStatus(false);
       ToastAndroid.showWithGravity('AuthToken Generated', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
     } else if (auth.token === '' || auth.token === null) {
-      setShowLoader(false);
+      props.setLoaderStatus(false);
       ToastAndroid.showWithGravity(
         'AuthToken Generation Error. Please try again',
         ToastAndroid.LONG,
@@ -151,7 +159,7 @@ const HomeScreen = (props) => {
   // componentDidUpdate
   useEffect(() => {
     if (Object.keys(unsignedTxState).length === 0 && Object.keys(tx.unsignedTx).length > 0) {
-      setShowLoader(false);
+      props.setLoaderStatus(false);
       setUnsignedTxState(tx.unsignedTx);
     }
   });
@@ -189,7 +197,7 @@ const HomeScreen = (props) => {
     setScan(false);
     setError('');
     try {
-      setShowLoader(true);
+      props.setLoaderStatus(true);
       props.setUnsignedTxHash(e.data);
     } catch (err) {
       setError('Invalid Transaction');
@@ -200,7 +208,7 @@ const HomeScreen = (props) => {
   const handleDeployTx = () => {
     if (tx.rawTx !== '' && auth.token !== '') {
       setError('');
-      setShowLoader(true);
+      props.setLoaderStatus(true);
       props.deploySignedTx(tx.rawTx, networkId, auth.token);
     } else {
       setError('Maybe Transaction not signed or no auth token generated');
@@ -222,11 +230,11 @@ const HomeScreen = (props) => {
     } catch (err) {
       setError(err.message);
     }
-    setShowLoader(false);
+    props.setLoaderStatus(false);
   };
 
   const handleGenerateKeyPair = async (password) => {
-    setShowLoader(true);
+    props.setLoaderStatus(true);
     createKeyPair(password)
       .then(async () => {
         // loadPvtKey(password);
@@ -515,6 +523,7 @@ HomeScreen.propTypes = {
   setUnsignedTxHash: PropTypes.func,
   getAuthToken: PropTypes.func,
   deploySignedTx: PropTypes.func,
+  setLoaderStatus: PropTypes.func,
   // eslint-disable-next-line react/forbid-prop-types
   auth: PropTypes.any,
   // eslint-disable-next-line react/forbid-prop-types
@@ -534,4 +543,5 @@ export default connect(mapStateToProps, {
   getAuthToken,
   setUnsignedTxHash,
   deploySignedTx,
+  setLoaderStatus,
 })(HomeScreen);
