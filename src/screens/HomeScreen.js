@@ -28,6 +28,7 @@ import PubKeyModal from '../components/PubKeyModal';
 import KsSelect from '../components/KeyStoreSelector';
 import PwdPrompt from '../components/PwdPrompt';
 import styles from './HomeScreenStyle';
+import Error from '../components/Error';
 
 const RNFS = require('react-native-fs');
 
@@ -66,7 +67,6 @@ const HomeScreen = (props) => {
   const [deleteModal, setDeleteModal] = useState(false);
   const [signModal, setSignModal] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [error, setError] = useState('');
   const [scan, setScan] = useState(false);
   const [showPwdPrompt, setShowPwdPrompt] = useState(false);
   const [accounts, setAccounts] = useState([]);
@@ -87,7 +87,7 @@ const HomeScreen = (props) => {
   }, []);
 
   const searchAccounts = async () => {
-    props.setLoaderStatus(true)
+    props.setLoaderStatus(true);
     ToastAndroid.showWithGravity(
       'Looking for saved Keystores',
       ToastAndroid.SHORT,
@@ -112,12 +112,12 @@ const HomeScreen = (props) => {
             props.setUnsignedTx(JSON.parse(unsignedTX));
           } else {
             props.setLoaderStatus(false);
-            setError('Invalid Transaction');
+            setErrorStatus('Invalid Transaction');
           }
         })
         .catch(() => {
           props.setLoaderStatus(false);
-          setError('Error Getting Transaction');
+          setErrorStatus('Error Getting Transaction');
         });
     }
   }, [tx.unsignedTxHash]);
@@ -126,10 +126,10 @@ const HomeScreen = (props) => {
   useEffect(() => {
     if (tx.txReceipt.Error) {
       const msg = tx.txReceipt.Error.split('=').slice(-1)[0];
-      setError(msg);
+      setErrorStatus(msg);
     }
     if (tx.txReceipt.Status) {
-      setError(tx.txReceipt.Status);
+      setErrorStatus(tx.txReceipt.Status);
     }
     props.setLoaderStatus(false);
   }, [tx.txReceipt]);
@@ -165,9 +165,9 @@ const HomeScreen = (props) => {
   });
 
   const handleSignTx = async (password) => {
-    setError('');
+    setErrorStatus('');
     if (!account) {
-      setError('No Account selected');
+      setErrorStatus('No Account selected');
     } else if (account.address !== '') {
       // For signing With private key.
       // Not to be confused with deploying unsigned Tx
@@ -177,7 +177,7 @@ const HomeScreen = (props) => {
         networkId
       );
       if (Error) {
-        setError(Error.message);
+        setErrorStatus(Error.message);
       } else {
         setTxHash(transaction.hash);
         props.setRawTx(rawTransaction);
@@ -195,23 +195,23 @@ const HomeScreen = (props) => {
 
   const handleScanner = (e) => {
     setScan(false);
-    setError('');
+    setErrorStatus('');
     try {
       props.setLoaderStatus(true);
       props.setUnsignedTxHash(e.data);
     } catch (err) {
-      setError('Invalid Transaction');
-      setTimeout(() => setError(''), 5000);
+      setErrorStatus('Invalid Transaction');
+      setTimeout(() => setErrorStatus(''), 5000);
     }
   };
 
   const handleDeployTx = () => {
     if (tx.rawTx !== '' && auth.token !== '') {
-      setError('');
+      setErrorStatus('');
       props.setLoaderStatus(true);
       props.deploySignedTx(tx.rawTx, networkId, auth.token);
     } else {
-      setError('Maybe Transaction not signed or no auth token generated');
+      setErrorStatus('Maybe Transaction not signed or no auth token generated');
     }
   };
 
@@ -225,10 +225,10 @@ const HomeScreen = (props) => {
     try {
       const pk = getPvtKey(keystore, password);
       setPvtKey(pk);
-      setError('');
+      setErrorStatus('');
       ToastAndroid.showWithGravity('Private key loaded!', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
     } catch (err) {
-      setError(err.message);
+      setErrorStatus(err.message);
     }
     props.setLoaderStatus(false);
   };
@@ -240,7 +240,7 @@ const HomeScreen = (props) => {
         // loadPvtKey(password);
       })
       .catch((e) => {
-        setError('Error Generating Private Key: ', e.message);
+        setErrorStatus('Error Generating Private Key: ', e.message);
       });
   };
 
@@ -273,11 +273,7 @@ const HomeScreen = (props) => {
         </Text>
       </Layout>
       <Loader />
-      {error !== '' && (
-        <Layout style={styles.error}>
-          <Text style={{textAlign: 'center', color: '#fff', fontSize: 18}}>{error}</Text>
-        </Layout>
-      )}
+      <Error />
       <Layout style={styles.keyActionContainerLayout}>
         {/* we should have a list of available keys */}
         <Input
@@ -337,7 +333,7 @@ const HomeScreen = (props) => {
             address={account.address}
             visible={showModal}
             setVisible={setShowModal}
-            setError={setError}
+            setErrorStatus={setErrorStatus}
           />
         )}
         {showPwdPrompt && (
@@ -501,7 +497,7 @@ const HomeScreen = (props) => {
         }}
         onPress={() => {
           setScan(!scan);
-          setError('');
+          setErrorStatus('');
           setTxHash('');
           setUnsignedTxState({});
           props.setRawTx('');
@@ -544,4 +540,5 @@ export default connect(mapStateToProps, {
   setUnsignedTxHash,
   deploySignedTx,
   setLoaderStatus,
+  setErrorStatus,
 })(HomeScreen);
