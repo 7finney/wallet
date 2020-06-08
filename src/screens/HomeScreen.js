@@ -2,7 +2,17 @@ import React, {useState, useEffect, useRef} from 'react';
 import {Dimensions, TouchableOpacity, ScrollView, ToastAndroid} from 'react-native';
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
-import {Layout, Text, Button, Card, Icon, Input, Spinner, Select} from '@ui-kitten/components';
+import {
+  Layout,
+  Text,
+  Button,
+  Card,
+  Icon,
+  Input,
+  Select,
+  IndexPath,
+  SelectItem,
+} from '@ui-kitten/components';
 import {
   signTransaction,
   createKeyPair,
@@ -29,22 +39,9 @@ import KsSelect from '../components/KeyStoreSelector';
 import PwdPrompt from '../components/PwdPrompt';
 import styles from './HomeScreenStyle';
 import Error from '../components/Error';
+import TestnetSelector from '../components/TestnetSelector';
 
 const RNFS = require('react-native-fs');
-
-const testNetArray = [
-  {text: 'Ethereum Mainnet'},
-  {text: 'Goerli'},
-  {text: 'Ropsten'},
-  {text: 'Rinkeby'},
-];
-
-const networkIdList = {
-  'Ethereum Mainnet': 1,
-  Ropsten: 3,
-  Rinkeby: 4,
-  Goerli: 5,
-};
 
 const usePrevious = (value) => {
   const ref = useRef();
@@ -59,7 +56,6 @@ const HomeScreen = (props) => {
 
   // Component State
   const [networkId, setNetworkId] = useState(5);
-  const [testnet, setTestnet] = useState(null);
   const [txHash, setTxHash] = useState('');
   const [unsignedTxState, setUnsignedTxState] = useState({});
   const [pvtKey, setPvtKey] = useState('');
@@ -150,11 +146,11 @@ const HomeScreen = (props) => {
     }
   }, [auth]);
 
-  useEffect(() => {
-    if (testnet !== null) {
-      setNetworkId(networkIdList[testnet.text]);
-    }
-  }, [testnet]);
+  // useEffect(() => {
+  //   if (testnet !== null) {
+  //     // setNetworkId(networkIdList[testnet.text]);
+  //   }
+  // }, [testnet]);
 
   // componentDidUpdate
   useEffect(() => {
@@ -356,22 +352,7 @@ const HomeScreen = (props) => {
             alignItems: 'center',
             justifyContent: 'flex-start',
           }}>
-          {Object.keys(unsignedTxState).length > 0 && (
-            <Layout
-              level="1"
-              style={{
-                width: '95%',
-                margin: 5,
-              }}>
-              <Select
-                label="Select Network"
-                data={testNetArray}
-                placeholder="Goerli"
-                selectedOption={testnet}
-                onSelect={setTestnet}
-              />
-            </Layout>
-          )}
+          {Object.keys(unsignedTxState).length > 0 && <TestnetSelector />}
           <Layout
             style={{
               display: 'flex',

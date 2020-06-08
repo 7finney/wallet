@@ -14,7 +14,7 @@ axios.interceptors.request.use((request) => {
  */
 export function getToken() {
   const appId = uuid.v1();
-  const url = `http://192.168.43.212:4550/api/v0/genToken/${appId}`;
+  const url = `http://192.168.0.104:4550/api/v0/genToken/${appId}`;
   return axios
     .get(url)
     .then((response) => {
