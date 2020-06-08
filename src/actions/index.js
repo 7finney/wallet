@@ -1,8 +1,10 @@
 import {
   DEPLOY_SIGNED_TX,
   RAW_TX,
-  SET_AUTH_TOKEN, SET_ERROR_STATUS,
+  SET_AUTH_TOKEN,
+  SET_ERROR_STATUS,
   SET_LOADER_STATUS,
+  SET_TESTNET_ID,
   UNSIGNED_TX,
   UNSIGNED_TX_HASH,
 } from './types';
@@ -90,14 +92,22 @@ export const deploySignedTx = (rawTx, networkId) => async (dispatch) => {
  * Sets The Loader status
  * @param data
  */
-export const setLoaderStatus = (data) => dispatch => {
-  dispatch({type: SET_LOADER_STATUS, payload: data})
-}
+export const setLoaderStatus = (data) => (dispatch) => {
+  dispatch({type: SET_LOADER_STATUS, payload: data});
+};
 
 /**
  * Sets the Error MSG
  * @param data
  */
-export const setErrorStatus = data => dispatch => {
-  dispatch({type: SET_ERROR_STATUS, payload: data})
-}
+export const setErrorStatus = (data) => (dispatch) => {
+  dispatch({type: SET_ERROR_STATUS, payload: data});
+};
+
+/**
+ * Sets the Testnet throughout the app
+ * @param data - testnet ID
+ */
+export const setTestnetID = (data) => (dispatch) => {
+  dispatch({type: SET_TESTNET_ID, payload: data});
+};

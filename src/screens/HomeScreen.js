@@ -9,9 +9,6 @@ import {
   Card,
   Icon,
   Input,
-  Select,
-  IndexPath,
-  SelectItem,
 } from '@ui-kitten/components';
 import {
   signTransaction,
@@ -145,12 +142,6 @@ const HomeScreen = (props) => {
       );
     }
   }, [auth]);
-
-  // useEffect(() => {
-  //   if (testnet !== null) {
-  //     // setNetworkId(networkIdList[testnet.text]);
-  //   }
-  // }, [testnet]);
 
   // componentDidUpdate
   useEffect(() => {
