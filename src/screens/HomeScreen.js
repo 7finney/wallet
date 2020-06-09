@@ -269,8 +269,8 @@ const HomeScreen = (props) => {
       <Layout style={styles.keyActionContainerLayout}>
         {/* we should have a list of available keys */}
         <Input
-          label="Private Key"
-          placeholder="Your Private key will appear here!"
+          label="Public Key"
+          placeholder="Your Public key will appear here!"
           value={account.address}
           disabled
         />

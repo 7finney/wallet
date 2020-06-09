@@ -4,12 +4,6 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {setTestnetID} from '../actions';
 
-// const testNetArray = [
-//   {net: 'Ethereum Mainnet', id: 1},
-//   {net: 'Goerli', id: 5},
-//   {net: 'Ropsten', id: 3},
-//   {net: 'Rinkeby', id: 4},
-// ];
 const testNetArray = ['Ethereum Mainnet', 'Goerli', 'Ropsten', 'Rinkeby'];
 
 const networkIdList = {
@@ -20,21 +14,34 @@ const networkIdList = {
 };
 
 const TestnetSelector = (props) => {
-  const [testnet, setTestnet] = useState(new IndexPath(0));
+  const [selectedTestnet, setTestnet] = useState(new IndexPath(0));
 
   const renderOption = (t) => <SelectItem title={t} key={t} />;
-  const displayValue = testNetArray[testnet.row];
+  const displayValue = testNetArray[selectedTestnet.row];
 
   useEffect(() => {
     const testNetName = Object.keys(networkIdList).find(
       (k) => networkIdList[k] === props.testnetID
     );
-    setTestnet(testNetArray.indexOf(testNetName));
+    if (testNetName) {
+      setTestnet(new IndexPath(testNetArray.indexOf(testNetName)));
+    } else {
+      setTestnet(new IndexPath(testNetArray[0]));
+    }
   }, []);
+
+  useEffect(() => {
+    const testnetName = testNetArray[selectedTestnet.row];
+    const networkID = networkIdList[testnetName];
+    if (networkID) {
+      props.setTestnetID(networkID);
+    } else {
+      props.setTestnetID(1);
+    }
+  }, [selectedTestnet]);
 
   const handleSelect = (index) => {
     setTestnet(index);
-    props.setTestnetID(networkIdList[testnet]);
   };
 
   return (
@@ -45,8 +52,8 @@ const TestnetSelector = (props) => {
         margin: 5,
       }}>
       <Select
-        label="Select Network"
-        selectedIndex={testnet}
+        // label="Select Network"
+        selectedIndex={selectedTestnet}
         value={displayValue}
         onSelect={handleSelect}>
         {testNetArray.map(renderOption)}
@@ -60,7 +67,8 @@ TestnetSelector.propTypes = {
   setTestnetID: PropTypes.func,
 };
 
-function mapStateToProps({testnetID}) {
+function mapStateToProps({comp}) {
+  const {testnetID} = comp;
   return {
     testnetID,
   };
