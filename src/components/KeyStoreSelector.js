@@ -1,7 +1,10 @@
 import React, {useState} from 'react';
 import {StyleSheet} from 'react-native';
+import {connect} from 'react-redux';
 import {IndexPath, Layout, Select, SelectItem} from '@ui-kitten/components';
 import PropTypes from 'prop-types';
+import {setKs} from '../services/sign';
+import {setAccounts} from '../actions';
 
 const styles = StyleSheet.create({
   container: {
@@ -9,19 +12,20 @@ const styles = StyleSheet.create({
   },
 });
 
-const KsSelect = ({accounts, setAccount, setKeyStore}) => {
+const KsSelect = (props) => {
+  const {auth} = props;
   const [selectedIndex, setSelectedIndex] = useState(new IndexPath(0));
   const displayValue =
-    accounts[selectedIndex.row] && accounts[selectedIndex.row].address
-      ? accounts[selectedIndex.row].address
+    auth.accounts[selectedIndex.row] && auth.accounts[selectedIndex.row].address
+      ? auth.accounts[selectedIndex.row].address
       : undefined;
 
   const renderOption = (f) => <SelectItem title={f.address} key={f.address} />;
 
   const handleSelect = (index) => {
     setSelectedIndex(index);
-    setAccount(accounts[index - 1]);
-    setKeyStore(index - 1)
+    props.setAccounts(auth.accounts[index - 1]);
+    setKs(index - 1)
       .then(() => {
         console.log('KeyStore set successful!');
       })
@@ -33,16 +37,22 @@ const KsSelect = ({accounts, setAccount, setKeyStore}) => {
   return (
     <Layout style={styles.container} level="1">
       <Select selectedIndex={selectedIndex} onSelect={handleSelect} value={displayValue}>
-        {accounts.map(renderOption)}
+        {auth.accounts.map(renderOption)}
       </Select>
     </Layout>
   );
 };
 
 KsSelect.propTypes = {
-  accounts: PropTypes.arrayOf(PropTypes.object),
-  setAccount: PropTypes.func,
-  setKeyStore: PropTypes.func,
+  // eslint-disable-next-line react/forbid-prop-types
+  auth: PropTypes.object,
+  setAccounts: PropTypes.func,
 };
 
-export default KsSelect;
+function mapStateToProps({auth}) {
+  return {
+    auth,
+  };
+}
+
+export default connect(mapStateToProps, setAccounts)(KsSelect);

@@ -2,20 +2,12 @@ import React, {useState, useEffect, useRef} from 'react';
 import {Dimensions, TouchableOpacity, ScrollView, ToastAndroid} from 'react-native';
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
-import {
-  Layout,
-  Text,
-  Button,
-  Card,
-  Icon,
-  Input,
-} from '@ui-kitten/components';
+import {Layout, Text, Button, Card, Icon, Input} from '@ui-kitten/components';
 import {
   signTransaction,
   createKeyPair,
   getPvtKey,
   listAccounts,
-  setKs,
   deleteKeyPair,
 } from '../services/sign';
 import {
@@ -70,13 +62,15 @@ const HomeScreen = (props) => {
     ToastAndroid.showWithGravity('Fetching AuthToken', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
     props.setLoaderStatus(true);
     props.getAuthToken();
-    // Get Private key from async storage on component mount
-    (async function () {
-      const key = await getFromAsyncStorage('pvtKey');
-      if (key) {
-        setPvtKey(key);
+    props.setAccounts(
+      // Get Private key from async storage on component mount
+      async function () {
+        const key = await getFromAsyncStorage('pvtKey');
+        if (key) {
+          setPvtKey(key);
+        }
       }
-    })();
+    )();
   }, []);
 
   const searchAccounts = async () => {
@@ -275,8 +269,8 @@ const HomeScreen = (props) => {
           disabled
         />
         {/* Keystore files selector */}
-        {accounts.length > 0 && (
-          <KsSelect accounts={accounts} setAccount={setAccount} setKeyStore={setKs} />
+        {auth.accounts.length > 0 && (
+          <KsSelect  />
         )}
         <Layout>
           {pvtKey.length <= 0 && (

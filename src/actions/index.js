@@ -1,7 +1,9 @@
 import {
   DEPLOY_SIGNED_TX,
   RAW_TX,
+  SET_ACCOUNTS,
   SET_AUTH_TOKEN,
+  SET_CURRENT_ACCOUNT,
   SET_ERROR_STATUS,
   SET_LOADER_STATUS,
   SET_TESTNET_ID,
@@ -15,6 +17,7 @@ import {
   setToAsyncStorage,
   verifyToken,
 } from './utils';
+import {listAccounts} from '../services/sign';
 
 /**
  *  setUnsignedTx Func -> Sets the Unsigned TX
@@ -110,4 +113,21 @@ export const setErrorStatus = (data) => (dispatch) => {
  */
 export const setTestnetID = (data) => (dispatch) => {
   dispatch({type: SET_TESTNET_ID, payload: data});
+};
+
+/**
+ * Sets all available accounts
+ * @param data
+ */
+export const setAccounts = () => async (dispatch) => {
+  const a = await listAccounts();
+  dispatch({type: SET_ACCOUNTS, payload: a});
+};
+
+/**
+ * Set the current account
+ * @param data
+ */
+export const setCurrentAccount = (data) => (dispatch) => {
+  dispatch({type: SET_CURRENT_ACCOUNT, payload: data});
 };
