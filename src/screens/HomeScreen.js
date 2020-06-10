@@ -66,6 +66,7 @@ const HomeScreen = (props) => {
   useEffect(() => {
     if (auth.accounts.length > 0) {
       props.setCurrentAccount(auth.accounts[0]);
+      props.setLoaderStatus(false);
     }
   }, [auth.accounts]);
 
@@ -200,6 +201,7 @@ const HomeScreen = (props) => {
     createKeyPair(password)
       .then(async () => {
         // loadPvtKey(password);
+        props.setAccounts();
         props.setLoaderStatus(false);
       })
       .catch((e) => {
@@ -210,7 +212,13 @@ const HomeScreen = (props) => {
 
   const handleDeleteKeyStore = async (password) => {
     props.setLoaderStatus(true);
-    await deleteKeyPair(password);
+    try {
+      await deleteKeyPair(password);
+      props.setAccounts();
+      // props.setCurrentAccount(auth.accounts[0]);
+    } catch (e) {
+      props.setErrorStatus('Something went wrong');
+    }
     props.setLoaderStatus(false);
   };
 
@@ -220,7 +228,7 @@ const HomeScreen = (props) => {
     RNFS.writeFile(path, JSON.stringify(keystore), 'utf8')
       .then(() => {
         ToastAndroid.showWithGravity('Keystore saved!', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
-        searchAccounts();
+        props.setAccounts();
       })
       .catch((err) => {
         ToastAndroid.showWithGravity(err.message, ToastAndroid.LONG, ToastAndroid.BOTTOM);
@@ -258,7 +266,7 @@ const HomeScreen = (props) => {
               <Button onPress={() => setCreateModal(true)}>Generate Account Key/Pair</Button>
             </Layout>
           )}
-          {Object.keys(auth.account).length > 0 && (
+          {auth.account && Object.keys(auth.account).length > 0 && (
             <Layout>
               <Button onPress={() => setShowModal(true)}>Show Public Key</Button>
               <Button onPress={() => setDeleteModal(true)}>Delete Current Account</Button>
@@ -294,7 +302,7 @@ const HomeScreen = (props) => {
             okBtnTxt="Sign"
           />
         )}
-        {Object.keys(auth.account).length > 0 && showModal && (
+        {auth.account && Object.keys(auth.account).length > 0 && showModal && (
           <PubKeyModal
             address={auth.account.address}
             visible={showModal}

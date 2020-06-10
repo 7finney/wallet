@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {StyleSheet} from 'react-native';
 import {connect} from 'react-redux';
 import {IndexPath, Layout, Select, SelectItem} from '@ui-kitten/components';
@@ -15,12 +15,17 @@ const styles = StyleSheet.create({
 const KsSelect = (props) => {
   const {auth} = props;
   const [selectedIndex, setSelectedIndex] = useState(new IndexPath(0));
-  const displayValue =
-    auth.accounts[selectedIndex.row] && auth.accounts[selectedIndex.row].address
-      ? auth.accounts[selectedIndex.row].address
-      : undefined;
+  const [displayValue, setDisplayValue] = useState(undefined);
 
   const renderOption = (f) => <SelectItem title={f.address} key={f.address} />;
+
+  useEffect(() => {
+    if (auth.accounts[selectedIndex.row] && auth.accounts[selectedIndex.row].address) {
+      setDisplayValue(auth.accounts[selectedIndex.row].address);
+    } else {
+      setDisplayValue(auth.accounts[0].address);
+    }
+  }, [selectedIndex]);
 
   const handleSelect = (index) => {
     setSelectedIndex(index);

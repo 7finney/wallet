@@ -37,26 +37,26 @@ function extractPvtKey(keyObject, pswd) {
 export async function createKeyPair(password) {
   try {
     const keyObject = await geth.newAccount(password);
-    console.log(keyObject);
     await setToAsyncStorage('keystore', JSON.stringify(keyObject));
     return keyObject;
   } catch (error) {
-    console.log(error);
     return error;
   }
 }
 
 // delete privateKey against address
 export function deleteKeyPair(password) {
-  geth
-    .deleteAccount(password)
-    .then(() => {
-      console.log('Account deleted!');
-      return true;
-    })
-    .catch((e) => {
-      return false;
-    });
+  return new Promise((resolve, reject) => {
+    geth
+      .deleteAccount(password)
+      .then(() => {
+        console.log('Account deleted!');
+        resolve(true);
+      })
+      .catch((e) => {
+        reject(false);
+      });
+  });
   // return removeFromAsyncStorage(publicKey);
 }
 
