@@ -3,13 +3,7 @@ import {Dimensions, TouchableOpacity, ScrollView, ToastAndroid} from 'react-nati
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
 import {Layout, Text, Button, Card, Icon, Input} from '@ui-kitten/components';
-import {
-  signTransaction,
-  createKeyPair,
-  getPvtKey,
-  listAccounts,
-  deleteKeyPair,
-} from '../services/sign';
+import {signTransaction, createKeyPair, getPvtKey, deleteKeyPair} from '../services/sign';
 import {
   setUnsignedTx,
   setRawTx,
@@ -18,6 +12,8 @@ import {
   deploySignedTx,
   setLoaderStatus,
   setErrorStatus,
+  setAccounts,
+  setCurrentAccount,
 } from '../actions';
 import {getUnsignedTx, getFromAsyncStorage} from '../actions/utils';
 import Loader from '../components/Loader';
@@ -44,7 +40,6 @@ const HomeScreen = (props) => {
   const {tx, auth} = props;
 
   // Component State
-  const [networkId, setNetworkId] = useState(5);
   const [txHash, setTxHash] = useState('');
   const [unsignedTxState, setUnsignedTxState] = useState({});
   const [pvtKey, setPvtKey] = useState('');
@@ -54,40 +49,25 @@ const HomeScreen = (props) => {
   const [showModal, setShowModal] = useState(false);
   const [scan, setScan] = useState(false);
   const [showPwdPrompt, setShowPwdPrompt] = useState(false);
-  const [accounts, setAccounts] = useState([]);
-  const [account, setAccount] = useState({});
 
   // ComponentDidMount
   useEffect(() => {
     ToastAndroid.showWithGravity('Fetching AuthToken', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
     props.setLoaderStatus(true);
     props.getAuthToken();
-    props.setAccounts(
-      // Get Private key from async storage on component mount
-      async function () {
-        const key = await getFromAsyncStorage('pvtKey');
-        if (key) {
-          setPvtKey(key);
-        }
-      }
-    )();
-  }, []);
-
-  const searchAccounts = async () => {
-    props.setLoaderStatus(true);
     ToastAndroid.showWithGravity(
       'Looking for saved Keystores',
       ToastAndroid.SHORT,
       ToastAndroid.BOTTOM
     );
-    const a = await listAccounts();
-    setAccounts(a);
-  };
-
-  // First read keystore files from DocumentDirectory
-  useEffect(() => {
-    searchAccounts();
+    props.setAccounts();
   }, []);
+
+  useEffect(() => {
+    if (auth.accounts.length > 0) {
+      props.setCurrentAccount(auth.accounts[0]);
+    }
+  }, [auth.accounts]);
 
   // ComponentDidUpdate for tx.unsignedTxHash. Triggers on tx Hash change
   useEffect(() => {
@@ -147,15 +127,15 @@ const HomeScreen = (props) => {
 
   const handleSignTx = async (password) => {
     props.setErrorStatus('');
-    if (!account) {
+    if (!auth.account) {
       props.setErrorStatus('No Account selected');
-    } else if (account.address !== '') {
+    } else if (auth.account !== '') {
       // For signing With private key.
       // Not to be confused with deploying unsigned Tx
       const {transaction, rawTransaction, Error} = await signTransaction(
         password,
         tx.unsignedTx,
-        networkId
+        auth.testnetID
       );
       if (Error) {
         props.setErrorStatus(Error.message);
@@ -190,7 +170,7 @@ const HomeScreen = (props) => {
     if (tx.rawTx !== '' && auth.token !== '') {
       props.setErrorStatus('');
       props.setLoaderStatus(true);
-      props.deploySignedTx(tx.rawTx, networkId, auth.token);
+      props.deploySignedTx(tx.rawTx, auth.testnetID, auth.token);
     } else {
       props.setErrorStatus('Maybe Transaction not signed or no auth token generated');
     }
@@ -262,23 +242,23 @@ const HomeScreen = (props) => {
       <Error />
       <Layout style={styles.keyActionContainerLayout}>
         {/* we should have a list of available keys */}
-        <Input
-          label="Public Key"
-          placeholder="Your Public key will appear here!"
-          value={account.address}
-          disabled
-        />
-        {/* Keystore files selector */}
-        {auth.accounts.length > 0 && (
-          <KsSelect  />
+        {auth.account && (
+          <Input
+            label="Public Key"
+            placeholder="Your Public key will appear here!"
+            value={auth.account.address}
+            disabled
+          />
         )}
+        {/* Keystore files selector */}
+        {auth.accounts.length > 0 && <KsSelect />}
         <Layout>
           {pvtKey.length <= 0 && (
             <Layout>
               <Button onPress={() => setCreateModal(true)}>Generate Account Key/Pair</Button>
             </Layout>
           )}
-          {Object.keys(account).length > 0 && (
+          {Object.keys(auth.account).length > 0 && (
             <Layout>
               <Button onPress={() => setShowModal(true)}>Show Public Key</Button>
               <Button onPress={() => setDeleteModal(true)}>Delete Current Account</Button>
@@ -314,9 +294,9 @@ const HomeScreen = (props) => {
             okBtnTxt="Sign"
           />
         )}
-        {Object.keys(account).length > 0 && showModal && (
+        {Object.keys(auth.account).length > 0 && showModal && (
           <PubKeyModal
-            address={account.address}
+            address={auth.account.address}
             visible={showModal}
             setVisible={setShowModal}
             setError={props.setErrorStatus}
@@ -492,6 +472,8 @@ HomeScreen.propTypes = {
   deploySignedTx: PropTypes.func,
   setLoaderStatus: PropTypes.func,
   setErrorStatus: PropTypes.func,
+  setAccounts: PropTypes.func,
+  setCurrentAccount: PropTypes.func,
   // eslint-disable-next-line react/forbid-prop-types
   auth: PropTypes.any,
   // eslint-disable-next-line react/forbid-prop-types
@@ -513,4 +495,6 @@ export default connect(mapStateToProps, {
   deploySignedTx,
   setLoaderStatus,
   setErrorStatus,
+  setAccounts,
+  setCurrentAccount,
 })(HomeScreen);

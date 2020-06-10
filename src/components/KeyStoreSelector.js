@@ -4,7 +4,7 @@ import {connect} from 'react-redux';
 import {IndexPath, Layout, Select, SelectItem} from '@ui-kitten/components';
 import PropTypes from 'prop-types';
 import {setKs} from '../services/sign';
-import {setAccounts} from '../actions';
+import {setCurrentAccount} from '../actions';
 
 const styles = StyleSheet.create({
   container: {
@@ -24,7 +24,7 @@ const KsSelect = (props) => {
 
   const handleSelect = (index) => {
     setSelectedIndex(index);
-    props.setAccounts(auth.accounts[index - 1]);
+    props.setCurrentAccount(auth.accounts[index - 1]);
     setKs(index - 1)
       .then(() => {
         console.log('KeyStore set successful!');
@@ -46,7 +46,7 @@ const KsSelect = (props) => {
 KsSelect.propTypes = {
   // eslint-disable-next-line react/forbid-prop-types
   auth: PropTypes.object,
-  setAccounts: PropTypes.func,
+  setCurrentAccount: PropTypes.func,
 };
 
 function mapStateToProps({auth}) {
@@ -55,4 +55,4 @@ function mapStateToProps({auth}) {
   };
 }
 
-export default connect(mapStateToProps, setAccounts)(KsSelect);
+export default connect(mapStateToProps, {setCurrentAccount})(KsSelect);

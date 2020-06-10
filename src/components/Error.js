@@ -6,7 +6,6 @@ import styles from '../screens/HomeScreenStyle';
 
 const Error = (props) => {
   const {comp} = props;
-  console.log(props);
   return (
     <>
       {comp.errorMsg !== '' && (

@@ -5,7 +5,6 @@ import {connect} from 'react-redux';
 
 const Loader = (props) => {
   const {comp} = props;
-  console.log(props);
   return (
     <>
       {comp.loader && (

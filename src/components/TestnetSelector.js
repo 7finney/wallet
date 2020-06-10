@@ -52,7 +52,7 @@ const TestnetSelector = (props) => {
         margin: 5,
       }}>
       <Select
-        // label="Select Network"
+        label="Select Network"
         selectedIndex={selectedTestnet}
         value={displayValue}
         onSelect={handleSelect}>
