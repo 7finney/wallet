@@ -3,7 +3,7 @@ import {SET_ERROR_STATUS, SET_LOADER_STATUS, SET_TESTNET_ID} from '../actions/ty
 const initialState = {
   loader: true,
   errorMsg: '',
-  testnetID: 4,
+  testnetID: 1,
 };
 
 export default function (state = initialState, action) {

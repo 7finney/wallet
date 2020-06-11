@@ -37,7 +37,7 @@ const usePrevious = (value) => {
 };
 
 const HomeScreen = (props) => {
-  const {tx, auth} = props;
+  const {tx, auth, comp} = props;
 
   // Component State
   const [txHash, setTxHash] = useState('');
@@ -142,7 +142,7 @@ const HomeScreen = (props) => {
       const {transaction, rawTransaction, Error} = await signTransaction(
         password,
         tx.unsignedTx,
-        auth.testnetID
+        comp.testnetID
       );
       if (Error) {
         props.setErrorStatus(Error.message);
@@ -178,7 +178,7 @@ const HomeScreen = (props) => {
     if (tx.rawTx !== '' && auth.token !== '') {
       props.setErrorStatus('');
       props.setLoaderStatus(true);
-      props.deploySignedTx(tx.rawTx, auth.testnetID, auth.token);
+      props.deploySignedTx(tx.rawTx, comp.testnetID, auth.token);
     } else {
       props.setErrorStatus('Maybe Transaction not signed or no auth token generated');
     }
@@ -500,12 +500,15 @@ HomeScreen.propTypes = {
   auth: PropTypes.any,
   // eslint-disable-next-line react/forbid-prop-types
   tx: PropTypes.any,
+  // eslint-disable-next-line react/forbid-prop-types
+  comp: PropTypes.any,
 };
 
-const mapStateToProps = ({tx, auth}) => {
+const mapStateToProps = ({tx, auth, comp}) => {
   return {
     tx,
     auth,
+    comp,
   };
 };
 
