@@ -103,10 +103,15 @@ const HomeScreen = (props) => {
     props.setLoaderStatus(false);
   }, [tx.txReceipt]);
 
-  const prevAuth = usePrevious({auth});
+  const prevAuth = auth ? usePrevious({auth}) : null;
   // ComponentDidUpdate for auth. Triggers on auth change
   useEffect(() => {
-    if (auth.token !== '' && auth.token !== undefined && prevAuth.auth.token !== auth.token) {
+    if (
+      auth &&
+      auth.token !== '' &&
+      auth.token !== undefined &&
+      prevAuth.auth.token !== auth.token
+    ) {
       props.setLoaderStatus(false);
       ToastAndroid.showWithGravity('AuthToken Generated', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
     } else if (auth.token === '' || auth.token === null) {
@@ -150,6 +155,7 @@ const HomeScreen = (props) => {
 
   const updateUnsignedTx = (key, value) => {
     setTxHash('');
+    props.setRawTx('');
     // Deep Copying object
     const newTx = JSON.parse(JSON.stringify(unsignedTxState));
     newTx[key] = value;
@@ -410,15 +416,21 @@ const HomeScreen = (props) => {
             )}
             {tx && Object.keys(tx.unsignedTx).length > 0 && (
               <Layout>
-                {!(tx.rawTx.length > 0) && (
-                  <Button style={styles.signBtn} onPress={() => setSignModal(true)}>
-                    Sign Transaction
-                  </Button>
-                )}
-                {tx.rawTx.length > 0 && (
-                  <Button style={styles.signBtn} onPress={handleDeployTx}>
-                    Deploy Transaction
-                  </Button>
+                {tx.rawTx.length === 0 ? (
+                  <Layout>
+                    <Button style={styles.signBtn} onPress={() => setSignModal(true)}>
+                      Sign Transaction
+                    </Button>
+                  </Layout>
+                ) : (
+                  <Layout>
+                    <Button style={[styles.signBtn, {backgroundColor: '#15348a'}]} disabled>
+                      Sign Transaction
+                    </Button>
+                    <Button style={styles.signBtn} onPress={handleDeployTx}>
+                      Deploy Transaction
+                    </Button>
+                  </Layout>
                 )}
               </Layout>
             )}
