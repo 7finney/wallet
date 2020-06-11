@@ -27,6 +27,10 @@ const KsSelect = (props) => {
     }
   }, [selectedIndex]);
 
+  useEffect(() => {
+    setSelectedIndex(new IndexPath(0));
+  }, [auth.accounts]);
+
   const handleSelect = (index) => {
     setSelectedIndex(index);
     props.setCurrentAccount(auth.accounts[index - 1]);

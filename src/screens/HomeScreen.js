@@ -63,10 +63,10 @@ const HomeScreen = (props) => {
     props.setAccounts();
   }, []);
 
-  useEffect(async () => {
+  useEffect(() => {
     if (auth.accounts.length > 0) {
       props.setCurrentAccount(auth.accounts[0]);
-      // setKs(0);
+      setKs(0);
       props.setLoaderStatus(false);
     }
   }, [auth.accounts]);
