@@ -3,7 +3,7 @@ import {Dimensions, TouchableOpacity, ScrollView, ToastAndroid} from 'react-nati
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
 import {Layout, Text, Button, Card, Icon, Input} from '@ui-kitten/components';
-import {signTransaction, createKeyPair, getPvtKey, deleteKeyPair} from '../services/sign';
+import {signTransaction, createKeyPair, getPvtKey, deleteKeyPair, setKs} from '../services/sign';
 import {
   setUnsignedTx,
   setRawTx,
@@ -63,9 +63,10 @@ const HomeScreen = (props) => {
     props.setAccounts();
   }, []);
 
-  useEffect(() => {
+  useEffect(async () => {
     if (auth.accounts.length > 0) {
       props.setCurrentAccount(auth.accounts[0]);
+      // setKs(0);
       props.setLoaderStatus(false);
     }
   }, [auth.accounts]);
@@ -457,6 +458,7 @@ const HomeScreen = (props) => {
         onPress={() => {
           setScan(!scan);
           props.setErrorStatus('');
+          props.setLoaderStatus(false);
           setTxHash('');
           setUnsignedTxState({});
           props.setRawTx('');
