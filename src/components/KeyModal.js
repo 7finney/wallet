@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {Layout, Text, Button, Icon, Input, Modal} from '@ui-kitten/components';
-import {TouchableOpacity, StyleSheet, Dimensions} from 'react-native';
+import {TouchableWithoutFeedback, StyleSheet, Dimensions} from 'react-native';
 import PropTypes from 'prop-types';
 
 const styles = StyleSheet.create({
@@ -46,11 +46,14 @@ const styles = StyleSheet.create({
 const KeyModal = ({visible, handleOk, setVisible, okBtnTxt}) => {
   const [showPassword, setShowPassword] = useState(false);
   const [password, setPassword] = useState('');
+  const toggleSecureEntry = () => {
+    setShowPassword(!showPassword);
+  };
   const InputEyeIcon = (props) => (
-    <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+    <TouchableWithoutFeedback onPress={toggleSecureEntry}>
       {/* eslint-disable-next-line react/jsx-props-no-spreading */}
       <Icon {...props} name={!showPassword ? 'eye-off' : 'eye'} />
-    </TouchableOpacity>
+    </TouchableWithoutFeedback>
   );
   return (
     <Modal visible={visible} backdropStyle={{backgroundColor: 'rgba(0,0,0,0.8)'}}>
@@ -62,7 +65,7 @@ const KeyModal = ({visible, handleOk, setVisible, okBtnTxt}) => {
           }}>
           <Layout style={styles.layoutContainer}>
             <Text style={styles.paswdText} h1>
-              Create your Private Key
+              Enter your Private Key Password
             </Text>
             <Input
               label="Password"
@@ -70,7 +73,7 @@ const KeyModal = ({visible, handleOk, setVisible, okBtnTxt}) => {
               secureTextEntry={!showPassword}
               value={String(password)}
               accessoryRight={InputEyeIcon}
-              onChangeText={(nextValue) => setPassword(nextValue)}
+              onChangeText={(pass) => setPassword(pass)}
             />
           </Layout>
         </Layout>

@@ -33,15 +33,6 @@ const styles = StyleSheet.create({
     width: '100%',
     padding: 20,
   },
-  spinner: {
-    backgroundColor: '#fff',
-    padding: 10,
-    borderRadius: 100,
-    elevation: 5,
-    marginTop: 20,
-    position: 'absolute',
-    top: 50,
-  },
   modalStyle: {
     display: 'flex',
     flexDirection: 'row',

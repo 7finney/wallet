@@ -110,7 +110,7 @@ const PubKeyModal = ({address, visible, setVisible, setError}) => {
                 />
               </Layout>
               <Layout style={styles.displayCenter}>
-                <QRCode size={270} value={pubKey} quietZone={5} getRef={(c) => setSvg(c)} />
+                <QRCode size={270} value={pubKey} quietZone={5} getRef={setSvg} />
               </Layout>
             </Layout>
           )}
