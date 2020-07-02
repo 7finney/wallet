@@ -15,13 +15,21 @@ const keythereum = require('keythereum');
 // sign an unsigned raw transaction and deploy
 export async function signTransaction(password, tx) {
   try {
-    const {transaction, raw} = await geth.signTransaction(password, tx);
+    const {transaction, raw} = await geth.signTransaction(password, {
+      chainId: tx.chainId,
+      to: tx.to,
+      from: tx.from,
+      value: tx.value,
+      nonce: tx.nonce,
+      gasLimit: parseInt(tx.gas, 10),
+      gasPrice: tx.gasPrice,
+      data: tx.data,
+    });
     return {
       transaction: JSON.parse(transaction),
       rawTransaction: `0x${raw}`,
     };
   } catch (e) {
-    console.log(e);
     return {
       Error: e,
     };
@@ -54,7 +62,7 @@ export function deleteKeyPair(password) {
         resolve(true);
       })
       .catch((e) => {
-        reject(false);
+        reject(e);
       });
   });
   // return removeFromAsyncStorage(publicKey);

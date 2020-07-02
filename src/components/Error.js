@@ -5,7 +5,7 @@ import {connect} from 'react-redux';
 import styles from '../screens/HomeScreenStyle';
 import {setErrorStatus} from '../actions';
 
-const Error = (props) => {
+const ErrorView = (props) => {
   const {comp} = props;
   let interval;
 
@@ -29,7 +29,7 @@ const Error = (props) => {
   );
 };
 
-Error.propTypes = {
+ErrorView.propTypes = {
   // eslint-disable-next-line react/forbid-prop-types
   comp: PropTypes.any,
   setErrorStatus: PropTypes.func,
@@ -41,4 +41,4 @@ function mapStateToProps({comp}) {
   };
 }
 
-export default connect(mapStateToProps, {setErrorStatus})(Error);
+export default connect(mapStateToProps, {setErrorStatus})(ErrorView);

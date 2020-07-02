@@ -23,7 +23,7 @@ import PubKeyModal from '../components/PubKeyModal';
 import KsSelect from '../components/KeyStoreSelector';
 import PwdPrompt from '../components/PwdPrompt';
 import styles from './HomeScreenStyle';
-import Error from '../components/Error';
+import ErrorView from '../components/Error';
 import TestnetSelector from '../components/TestnetSelector';
 
 const RNFS = require('react-native-fs');
@@ -141,7 +141,7 @@ const HomeScreen = (props) => {
       // Not to be confused with deploying unsigned Tx
       const {transaction, rawTransaction, Error} = await signTransaction(
         password,
-        tx.unsignedTx,
+        unsignedTxState,
         comp.testnetID
       );
       if (Error) {
@@ -254,7 +254,7 @@ const HomeScreen = (props) => {
         </Text>
       </Layout>
       <Loader />
-      <Error />
+      <ErrorView />
       <Layout style={styles.keyActionContainerLayout}>
         {/* we should have a list of available keys */}
         {auth.account && (
@@ -314,7 +314,7 @@ const HomeScreen = (props) => {
             address={auth.account.address}
             visible={showModal}
             setVisible={setShowModal}
-            setError={props.setErrorStatus}
+            setError={setErrorStatus}
           />
         )}
         {showPwdPrompt && (
