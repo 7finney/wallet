@@ -1,38 +1,32 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Dimensions, TouchableOpacity, ScrollView, ToastAndroid } from 'react-native';
-import { connect } from 'react-redux';
+import React, {useState, useEffect, useRef} from 'react';
+import {Dimensions, TouchableOpacity, ScrollView, ToastAndroid} from 'react-native';
+import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
+import {Layout, Text, Button, Card, Icon, Input} from '@ui-kitten/components';
+import {signTransaction, createKeyPair, getPvtKey, deleteKeyPair, setKs} from '../services/sign';
 import {
-  Layout,
-  Text,
-  Button,
-  Card,
-  Icon,
-  Input,
-  Spinner,
-  Select,
-  Modal,
-} from '@ui-kitten/components';
-import { deployUnsignedTx, createKeyPair, deleteKeyPair } from '../services/sign';
+  setUnsignedTx,
+  setRawTx,
+  getAuthToken,
+  setUnsignedTxHash,
+  deploySignedTx,
+  setLoaderStatus,
+  setErrorStatus,
+  setAccounts,
+  setCurrentAccount,
+} from '../actions';
+import {getUnsignedTx, getFromAsyncStorage} from '../actions/utils';
+import Loader from '../components/Loader';
 import QRScanner from '../components/QRScanner';
-import { setUnsignedTx, setRawTx, getAuthToken, setUnsignedTxHash, deploySignedTx } from '../actions';
-import { getUnsignedTx, setToAsyncStorage, getFromAsyncStorage } from '../actions/utils';
+import KeyModal from '../components/KeyModal';
+import PubKeyModal from '../components/PubKeyModal';
+import KsSelect from '../components/KeyStoreSelector';
+import PwdPrompt from '../components/PwdPrompt';
 import styles from './HomeScreenStyle';
+import Error from '../components/Error';
+import TestnetSelector from '../components/TestnetSelector';
 
-
-const testNetArray = [
-  { text: 'Ethereum Mainnet' },
-  { text: 'Goerli' },
-  { text: 'Ropsten' },
-  { text: 'Rinkeby' },
-];
-
-const networkIdList = {
-  'Ethereum Mainnet': 1,
-  Ropsten: 3,
-  Rinkeby: 4,
-  Goerli: 5,
-};
+const RNFS = require('react-native-fs');
 
 const usePrevious = (value) => {
   const ref = useRef();
@@ -43,54 +37,56 @@ const usePrevious = (value) => {
 };
 
 const HomeScreen = (props) => {
-  const { tx, auth } = props;
+  const {tx, auth, comp} = props;
 
   // Component State
-  const [networkId, setNetworkId] = useState(5);
-  const [testnet, setTestnet] = useState(null);
   const [txHash, setTxHash] = useState('');
   const [unsignedTxState, setUnsignedTxState] = useState({});
   const [pvtKey, setPvtKey] = useState('');
-  const [password, setPassword] = useState('');
+  const [createModal, setCreateModal] = useState(false);
+  const [deleteModal, setDeleteModal] = useState(false);
+  const [signModal, setSignModal] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [error, setError] = useState('');
   const [scan, setScan] = useState(false);
-  const [showLoader, setShowLoader] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPwdPrompt, setShowPwdPrompt] = useState(false);
 
   // ComponentDidMount
   useEffect(() => {
     ToastAndroid.showWithGravity('Fetching AuthToken', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
-    setShowLoader(true);
+    props.setLoaderStatus(true);
     props.getAuthToken();
-    // Get Private key from async storage on component mount
-    (async function () {
-      const key = await getFromAsyncStorage('pvtKey');
-      if (key) {
-        setPvtKey(key);
-      }
-      if (password) {
-        setPassword('');
-      }
-    })();
+    ToastAndroid.showWithGravity(
+      'Looking for saved Keystores',
+      ToastAndroid.SHORT,
+      ToastAndroid.BOTTOM
+    );
+    props.setAccounts();
   }, []);
+
+  useEffect(() => {
+    if (auth.accounts.length > 0) {
+      props.setCurrentAccount(auth.accounts[0]);
+      setKs(0);
+      props.setLoaderStatus(false);
+    }
+  }, [auth.accounts]);
 
   // ComponentDidUpdate for tx.unsignedTxHash. Triggers on tx Hash change
   useEffect(() => {
     if (tx.unsignedTxHash !== undefined && tx.unsignedTxHash !== '' && auth.token !== '') {
-      setShowLoader(true);
+      props.setLoaderStatus(true);
       getUnsignedTx(tx.unsignedTxHash, auth.token)
         .then((unsignedTX) => {
           if (unsignedTX) {
             props.setUnsignedTx(JSON.parse(unsignedTX));
           } else {
-            setShowLoader(false);
-            setError('Invalid Transaction');
+            props.setLoaderStatus(false);
+            props.setErrorStatus('Invalid Transaction');
           }
         })
         .catch(() => {
-          setShowLoader(false);
-          setError('Error Getting Transaction');
+          props.setLoaderStatus(false);
+          props.setErrorStatus('Error Getting Transaction');
         });
     }
   }, [tx.unsignedTxHash]);
@@ -99,22 +95,27 @@ const HomeScreen = (props) => {
   useEffect(() => {
     if (tx.txReceipt.Error) {
       const msg = tx.txReceipt.Error.split('=').slice(-1)[0];
-      setError(msg);
+      props.setErrorStatus(msg);
     }
     if (tx.txReceipt.Status) {
-      setError(tx.txReceipt.Status);
+      props.setErrorStatus(tx.txReceipt.Status);
     }
-    setShowLoader(false);
+    props.setLoaderStatus(false);
   }, [tx.txReceipt]);
 
-  const prevAuth = usePrevious({ auth });
+  const prevAuth = auth ? usePrevious({auth}) : null;
   // ComponentDidUpdate for auth. Triggers on auth change
   useEffect(() => {
-    if (auth.token !== '' && auth.token !== undefined && prevAuth.auth.token !== auth.token) {
-      setShowLoader(false);
+    if (
+      auth &&
+      auth.token !== '' &&
+      auth.token !== undefined &&
+      prevAuth.auth.token !== auth.token
+    ) {
+      props.setLoaderStatus(false);
       ToastAndroid.showWithGravity('AuthToken Generated', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
     } else if (auth.token === '' || auth.token === null) {
-      setShowLoader(false);
+      props.setLoaderStatus(false);
       ToastAndroid.showWithGravity(
         'AuthToken Generation Error. Please try again',
         ToastAndroid.LONG,
@@ -123,38 +124,30 @@ const HomeScreen = (props) => {
     }
   }, [auth]);
 
-  useEffect(() => {
-    if (testnet !== null) {
-      setNetworkId(networkIdList[testnet.text]);
-    }
-  }, [testnet]);
-
   // componentDidUpdate
   useEffect(() => {
-    console.log(props);
     if (Object.keys(unsignedTxState).length === 0 && Object.keys(tx.unsignedTx).length > 0) {
-      setShowLoader(false);
+      props.setLoaderStatus(false);
       setUnsignedTxState(tx.unsignedTx);
     }
   });
 
-  const handleSignTx = async () => {
-    setError('');
-    const privateKey = await getFromAsyncStorage('pvtKey');
-    if (!privateKey) {
-      setError('No Private Key Set');
-    } else if (privateKey !== '') {
+  const handleSignTx = async (password) => {
+    props.setErrorStatus('');
+    if (!auth.account) {
+      props.setErrorStatus('No Account selected');
+    } else if (auth.account !== '') {
       // For signing With private key.
       // Not to be confused with deploying unsigned Tx
-      const { transactionHash, rawTransaction, Error } = deployUnsignedTx(
-        unsignedTxState,
-        privateKey,
-        networkId
+      const {transaction, rawTransaction, Error} = await signTransaction(
+        password,
+        tx.unsignedTx,
+        comp.testnetID
       );
       if (Error) {
-        setError(Error.message);
+        props.setErrorStatus(Error.message);
       } else {
-        setTxHash(transactionHash);
+        setTxHash(transaction.hash);
         props.setRawTx(rawTransaction);
       }
     }
@@ -162,6 +155,7 @@ const HomeScreen = (props) => {
 
   const updateUnsignedTx = (key, value) => {
     setTxHash('');
+    props.setRawTx('');
     // Deep Copying object
     const newTx = JSON.parse(JSON.stringify(unsignedTxState));
     newTx[key] = value;
@@ -170,199 +164,165 @@ const HomeScreen = (props) => {
 
   const handleScanner = (e) => {
     setScan(false);
-    setError('');
+    props.setErrorStatus('');
     try {
-      setShowLoader(true);
+      props.setLoaderStatus(true);
       props.setUnsignedTxHash(e.data);
     } catch (err) {
-      setError('Invalid Transaction');
-      setTimeout(() => setError(''), 5000);
+      props.setErrorStatus('Invalid Transaction');
+      setTimeout(() => props.setErrorStatus(''), 5000);
     }
   };
 
   const handleDeployTx = () => {
     if (tx.rawTx !== '' && auth.token !== '') {
-      setError('');
-      setShowLoader(true);
-      props.deploySignedTx(tx.rawTx, networkId, auth.token);
+      props.setErrorStatus('');
+      props.setLoaderStatus(true);
+      props.deploySignedTx(tx.rawTx, comp.testnetID, auth.token);
     } else {
-      setError('Maybe Transaction not signed or no auth token generated');
+      props.setErrorStatus('Maybe Transaction not signed or no auth token generated');
     }
   };
 
-  const handleAddPvtKey = async () => {
-    const result = await setToAsyncStorage('pvtKey', pvtKey);
-    if (result) {
-      setPvtKey(result);
-      setError('Successfully Set');
-    } else {
-      setError('Error setting private key');
-    }
-  };
-
-  const handleShowPubKey = async () => {
-    setShowLoader(true);
-    const pvtKey = await getFromAsyncStorage('pvtKey');
-    const res = await getPubKey(pvtKey);
-    if(res) {
-      setPubKey(res);
-      setError('');
-    } else {
-      setError('Error Generating pvt Key');
-    }
-    setShowLoader(false);
-  }
-
-  const handleGenerateKeyPair = async () => {
-    setShowLoader(true);
-    console.log("Handle createKeyPair");
-    
-    const res = await createKeyPair({ password: '' });
-    if (res) {
-      const savedPvtKey = await getFromAsyncStorage('pvtKey');
-      if (savedPvtKey) {
-        setPvtKey(savedPvtKey);
-        setError('');
-      } else {
-        setError('No Pvt Key Found');
-      }
-    } else {
-      setError('Error Generating pvt Key');
-    }
-    setShowLoader(false);
-  };
-
-  const handleDeletePrivateKey = async () => {
+  const loadPvtKey = async (password) => {
+    props.setLoaderStatus(true);
+    const keystore = JSON.parse(await getFromAsyncStorage('keystore'));
+    ToastAndroid.showWithGravity(
+      'Unlocking private key with password!',
+      ToastAndroid.SHORT,
+      ToastAndroid.BOTTOM
+    );
     try {
-      const res = await deleteKeyPair('pvtKey');
-      if (res) {
-        setPvtKey('');
-        setError('Private Key Deleted Successfully');
-      }
-    } catch (e) {
-      setError('Unable To delete Private Key');
+      const pk = getPvtKey(keystore, password);
+      setPvtKey(pk);
+      props.setErrorStatus('');
+      ToastAndroid.showWithGravity('Private key loaded!', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
+    } catch (err) {
+      props.setErrorStatus(err.message);
     }
+    props.setLoaderStatus(false);
+  };
+
+  const handleGenerateKeyPair = async (password) => {
+    props.setLoaderStatus(true);
+    createKeyPair(password)
+      .then(async () => {
+        // loadPvtKey(password);
+        props.setAccounts();
+        props.setLoaderStatus(false);
+      })
+      .catch((e) => {
+        props.setLoaderStatus(false);
+        props.setErrorStatus('Error Generating Private Key: ', e.message);
+      });
+  };
+
+  const handleDeleteKeyStore = async (password) => {
+    props.setLoaderStatus(true);
+    try {
+      await deleteKeyPair(password);
+      props.setAccounts();
+      // props.setCurrentAccount(auth.accounts[0]);
+    } catch (e) {
+      props.setErrorStatus('Something went wrong');
+    }
+    props.setLoaderStatus(false);
+  };
+
+  const saveKeystore = async () => {
+    const keystore = JSON.parse(await getFromAsyncStorage('keystore'));
+    const path = `${RNFS.DocumentDirectoryPath}/${keystore.address}.json`;
+    RNFS.writeFile(path, JSON.stringify(keystore), 'utf8')
+      .then(() => {
+        ToastAndroid.showWithGravity('Keystore saved!', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
+        props.setAccounts();
+      })
+      .catch((err) => {
+        ToastAndroid.showWithGravity(err.message, ToastAndroid.LONG, ToastAndroid.BOTTOM);
+      });
+  };
+
+  const handleUnlock = (password) => {
+    loadPvtKey(password);
   };
 
   return (
     <Layout style={styles.container}>
       <Layout style={styles.homeHeader}>
-        <Text style={styles.homeHeaderText} category="h1">Wallet</Text>
+        <Text style={styles.homeHeaderText} category="h1">
+          Wallet
+        </Text>
       </Layout>
-      {showLoader && (
-        <Layout
-          style={styles.spinner}>
-          <Spinner size="large" />
-        </Layout>
-      )}
-      {error !== '' && (
-        <Layout style={styles.error}>
-          <Text style={{ textAlign: 'center', color: '#fff', fontSize: 18 }}>{error}</Text>
-        </Layout>
-      )}
-      <Layout
-        style={{
-          width: '95%',
-          margin: 5,
-        }}>
-        <Input
-          label="Private Key:"
-          placeholder="Enter Private key without 0x"
-          value={pvtKey}
-        
-          onChangeText={(e) => setPvtKey(e)}
-        />
+      <Loader />
+      <Error />
+      <Layout style={styles.keyActionContainerLayout}>
+        {/* we should have a list of available keys */}
+        {auth.account && (
+          <Input
+            label="Public Key"
+            placeholder="Your Public key will appear here!"
+            value={auth.account.address}
+            disabled
+          />
+        )}
+        {/* Keystore files selector */}
+        {auth.accounts.length > 0 && <KsSelect />}
         <Layout>
-          {
-            pvtKey.length <= 0 &&
+          {pvtKey.length <= 0 && (
             <Layout>
-              <Button onPress={(e) => handleAddPvtKey(e)}>Set Private Key</Button>
-              <Button onPress={() => setShowModal(true)}>Generate Account Key/Pair</Button>
+              <Button onPress={() => setCreateModal(true)}>Generate Account Key/Pair</Button>
             </Layout>
-          }
-          {
-            pvtKey.length > 0 &&
+          )}
+          {auth.account && Object.keys(auth.account).length > 0 && (
             <Layout>
-              <Button onPress={(e) => handleShowPubKey(e)}>Show Public Key</Button>
-              <Button onPress={handleDeletePrivateKey}>Delete Current Account</Button>
+              <Button onPress={() => setShowModal(true)}>Show Public Key</Button>
+              <Button onPress={() => setDeleteModal(true)}>Delete Current Account</Button>
             </Layout>
-          }
+          )}
+          {pvtKey.length > 0 && (
+            <Layout>
+              <Button onPress={() => saveKeystore()}>Save keystore</Button>
+            </Layout>
+          )}
         </Layout>
-        {showModal && (
-          <Modal visible={showModal} backdropStyle={{ backgroundColor: 'rgba(0,0,0,0.8)' }}>
-            <Layout
-              level="3"
-              style={{
-                padding: 25,
-                display: 'flex',
-                width: Dimensions.get('window').width - 10,
-              }}>
-              <Layout
-                style={{
-                  marginVertical: 20,
-                  backgroundColor: 'transparent',
-                }}>
-                <Text
-                  style={{
-                    color: '#252525',
-                    marginVertical: 5,
-                  }}
-                  h1>
-                  Enter Password For Private Key
-                </Text>
-                <Layout>
-                  <Input
-                    style={{
-                      padding: 0,
-                      width: '100%',
-                      margin: 0,
-                      border: 'none',
-                    }}
-                    secureTextEntry={!showPassword}
-                    value={String(password)}
-                    icon={() => (
-                      <TouchableOpacity
-                        onPress={() => setShowPassword(!showPassword)}
-                        style={{
-                          backgroundColor: 'transparent',
-                          border: 'none',
-                        }}>
-                        {!showPassword ? (
-                          <Icon style={styles.icon} name="eye-outline" fill="#8F9BB3" />
-                        ) : (
-                            <Icon style={styles.icon} name="eye-off-outline" fill="#8F9BB3" />
-                          )}
-                      </TouchableOpacity>
-                    )}
-                    onChangeText={(e) => setPassword(e)}
-                  />
-                </Layout>
-              </Layout>
-              <Layout
-                style={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  justifyContent: 'space-around',
-                  width: '100%',
-                  backgroundColor: 'transparent',
-                }}>
-                <Button
-                  onPress={() => {
-                    setPassword('');
-                    setShowModal(false);
-                  }}>
-                  Cancel
-                </Button>
-                <Button
-                  onPress={() => {
-                    handleGenerateKeyPair();
-                    setShowModal(false);
-                  }}>
-                  Generate
-                </Button>
-              </Layout>
-            </Layout>
-          </Modal>
+        {createModal && (
+          <KeyModal
+            visible={createModal}
+            setVisible={setCreateModal}
+            handleOk={handleGenerateKeyPair}
+            okBtnTxt="Generate"
+          />
+        )}
+        {deleteModal && (
+          <KeyModal
+            visible={deleteModal}
+            setVisible={setDeleteModal}
+            handleOk={handleDeleteKeyStore}
+            okBtnTxt="Delete"
+          />
+        )}
+        {signModal && (
+          <KeyModal
+            visible={signModal}
+            setVisible={setSignModal}
+            handleOk={handleSignTx}
+            okBtnTxt="Sign"
+          />
+        )}
+        {auth.account && Object.keys(auth.account).length > 0 && showModal && (
+          <PubKeyModal
+            address={auth.account.address}
+            visible={showModal}
+            setVisible={setShowModal}
+            setError={props.setErrorStatus}
+          />
+        )}
+        {showPwdPrompt && (
+          <PwdPrompt
+            visible={showPwdPrompt}
+            setVisible={setShowPwdPrompt}
+            onSubmit={handleUnlock}
+          />
         )}
       </Layout>
       <ScrollView>
@@ -372,22 +332,7 @@ const HomeScreen = (props) => {
             alignItems: 'center',
             justifyContent: 'flex-start',
           }}>
-          {Object.keys(unsignedTxState).length > 0 && (
-            <Layout
-              level="1"
-              style={{
-                width: '95%',
-                margin: 5,
-              }}>
-              <Select
-                label="Select Network"
-                data={testNetArray}
-                placeholder="Goerli"
-                selectedOption={testnet}
-                onSelect={setTestnet}
-              />
-            </Layout>
-          )}
+          {Object.keys(unsignedTxState).length > 0 && <TestnetSelector />}
           <Layout
             style={{
               display: 'flex',
@@ -447,38 +392,46 @@ const HomeScreen = (props) => {
                 </Card>
               </Layout>
             )}
-            {tx && txHash !== '' && tx.rawTx !== '' && (
+            {tx && tx.rawTx.length > 0 && (
               <Layout
                 style={{
                   marginBottom: 10,
                   padding: 10,
                 }}>
                 <Card>
-                  <Text appearance="hint">Transaction Hash: </Text>
-                  <Text>{txHash}</Text>
-                  <Text appearance="hint">Raw Transaction: </Text>
-                  <Text> {tx.rawTx}</Text>
+                  {txHash && (
+                    <Layout>
+                      <Text appearance="hint">Transaction Hash:</Text>
+                      <Text>{txHash}</Text>
+                    </Layout>
+                  )}
+                  {tx.rawTx.length > 0 && (
+                    <Layout>
+                      <Text appearance="hint">Raw Transaction:</Text>
+                      <Text>{tx.rawTx}</Text>
+                    </Layout>
+                  )}
                 </Card>
               </Layout>
             )}
             {tx && Object.keys(tx.unsignedTx).length > 0 && (
               <Layout>
-                {txHash === '' ? (
+                {tx.rawTx.length === 0 ? (
                   <Layout>
-                    <Button style={styles.signBtn} onPress={handleSignTx}>
+                    <Button style={styles.signBtn} onPress={() => setSignModal(true)}>
                       Sign Transaction
                     </Button>
                   </Layout>
                 ) : (
-                    <Layout>
-                      <Button style={[styles.signBtn, { backgroundColor: '#15348a' }]} disabled>
-                        Sign Transaction
+                  <Layout>
+                    <Button style={[styles.signBtn, {backgroundColor: '#15348a'}]} disabled>
+                      Sign Transaction
                     </Button>
-                      <Button style={styles.signBtn} onPress={handleDeployTx}>
-                        Deploy Transaction
+                    <Button style={styles.signBtn} onPress={handleDeployTx}>
+                      Deploy Transaction
                     </Button>
-                    </Layout>
-                  )}
+                  </Layout>
+                )}
               </Layout>
             )}
           </Layout>
@@ -509,14 +462,15 @@ const HomeScreen = (props) => {
           backgroundColor: '#fff',
           borderRadius: 100,
           shadowColor: '#000',
-          shadowOffset: { width: 0, height: -2 },
+          shadowOffset: {width: 0, height: -2},
           shadowOpacity: 0.5,
           shadowRadius: 2,
           elevation: 2,
         }}
         onPress={() => {
           setScan(!scan);
-          setError('');
+          props.setErrorStatus('');
+          props.setLoaderStatus(false);
           setTxHash('');
           setUnsignedTxState({});
           props.setRawTx('');
@@ -526,8 +480,8 @@ const HomeScreen = (props) => {
         {scan === false ? (
           <Icon style={styles.icon} fill="#8F9BB3" name="camera" />
         ) : (
-            <Icon style={styles.icon} fill="#8F9BB3" name="close" />
-          )}
+          <Icon style={styles.icon} fill="#8F9BB3" name="close" />
+        )}
       </TouchableOpacity>
     </Layout>
   );
@@ -538,16 +492,23 @@ HomeScreen.propTypes = {
   setUnsignedTxHash: PropTypes.func,
   getAuthToken: PropTypes.func,
   deploySignedTx: PropTypes.func,
+  setLoaderStatus: PropTypes.func,
+  setErrorStatus: PropTypes.func,
+  setAccounts: PropTypes.func,
+  setCurrentAccount: PropTypes.func,
   // eslint-disable-next-line react/forbid-prop-types
   auth: PropTypes.any,
   // eslint-disable-next-line react/forbid-prop-types
   tx: PropTypes.any,
+  // eslint-disable-next-line react/forbid-prop-types
+  comp: PropTypes.any,
 };
 
-const mapStateToProps = ({ tx, auth }) => {
+const mapStateToProps = ({tx, auth, comp}) => {
   return {
     tx,
     auth,
+    comp,
   };
 };
 
@@ -557,4 +518,8 @@ export default connect(mapStateToProps, {
   getAuthToken,
   setUnsignedTxHash,
   deploySignedTx,
+  setLoaderStatus,
+  setErrorStatus,
+  setAccounts,
+  setCurrentAccount,
 })(HomeScreen);
