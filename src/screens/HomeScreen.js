@@ -1,6 +1,5 @@
 import React, {useState, useEffect, useRef, useContext} from 'react';
 import {Dimensions, TouchableOpacity, ScrollView, ToastAndroid} from 'react-native';
-import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
 import {Layout, Text, Button, Card, Icon, Input} from '@ui-kitten/components';
 import {Context} from '../configureStore';
@@ -37,9 +36,7 @@ const usePrevious = (value) => {
   return ref.current;
 };
 
-const HomeScreen = (props) => {
-  const {tx, auth, comp} = props;
-
+const HomeScreen = () => {
   // Global State and dispatch For Actions
   const [state, dispatch] = useContext(Context);
 
@@ -68,18 +65,18 @@ const HomeScreen = (props) => {
   }, []);
 
   useEffect(() => {
-    if (auth.accounts.length > 0) {
-      dispatch(setCurrentAccount(auth.accounts[0]));
+    if (state.accounts.length > 0) {
+      dispatch(setCurrentAccount(state.accounts[0]));
       setKs(0);
       dispatch(setLoaderStatus(false));
     }
-  }, [auth.accounts]);
+  }, [state.accounts]);
 
-  // ComponentDidUpdate for tx.unsignedTxHash. Triggers on tx Hash change
+  // ComponentDidUpdate for state.unsignedTxHash. Triggers on tx Hash change
   useEffect(() => {
-    if (tx.unsignedTxHash !== undefined && tx.unsignedTxHash !== '' && auth.token !== '') {
+    if (state.unsignedTxHash !== undefined && state.unsignedTxHash !== '' && state.token !== '') {
       dispatch(setLoaderStatus(true));
-      getUnsignedTx(tx.unsignedTxHash, auth.token)
+      getUnsignedTx(state.unsignedTxHash, state.token)
         .then((unsignedTX) => {
           if (unsignedTX) {
             dispatch(setUnsignedTx(JSON.parse(unsignedTX)));
@@ -93,32 +90,32 @@ const HomeScreen = (props) => {
           dispatch(setErrorStatus('Error Getting Transaction'));
         });
     }
-  }, [tx.unsignedTxHash]);
+  }, [state.unsignedTxHash]);
 
   // ComponentDidUpdate for txReceipt. Triggers on tx.txReceipt change
   useEffect(() => {
-    if (tx.txReceipt.Error) {
-      const msg = tx.txReceipt.Error.split('=').slice(-1)[0];
+    if (state.txReceipt.Error) {
+      const msg = state.txReceipt.Error.split('=').slice(-1)[0];
       dispatch(setErrorStatus(msg));
     }
-    if (tx.txReceipt.Status) {
-      dispatch(setErrorStatus(tx.txReceipt.Status));
+    if (state.txReceipt.Status) {
+      dispatch(setErrorStatus(state.txReceipt.Status));
     }
     dispatch(setLoaderStatus(false));
-  }, [tx.txReceipt]);
+  }, [state.txReceipt]);
 
-  const prevAuth = auth ? usePrevious({auth}) : null;
-  // ComponentDidUpdate for auth. Triggers on auth change
+  const prevAuth = state ? usePrevious({state}) : null;
+  // ComponentDidUpdate for state. Triggers on auth change
   useEffect(() => {
     if (
-      auth &&
-      auth.token !== '' &&
-      auth.token !== undefined &&
-      prevAuth.auth.token !== auth.token
+      state &&
+      state.token !== '' &&
+      state.token !== undefined &&
+      prevAuth.state.token !== state.token
     ) {
       dispatch(setLoaderStatus(false));
       ToastAndroid.showWithGravity('AuthToken Generated', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
-    } else if (auth.token === '' || auth.token === null) {
+    } else if (state.token === '' || state.token === null) {
       dispatch(setLoaderStatus(false));
       ToastAndroid.showWithGravity(
         'AuthToken Generation Error. Please try again',
@@ -126,27 +123,27 @@ const HomeScreen = (props) => {
         ToastAndroid.BOTTOM
       );
     }
-  }, [auth]);
+  }, [state]);
 
   // componentDidUpdate
   useEffect(() => {
-    if (Object.keys(unsignedTxState).length === 0 && Object.keys(tx.unsignedTx).length > 0) {
+    if (Object.keys(unsignedTxState).length === 0 && Object.keys(state.unsignedTx).length > 0) {
       dispatch(setLoaderStatus(false));
-      setUnsignedTxState(tx.unsignedTx);
+      setUnsignedTxState(state.unsignedTx);
     }
   });
 
   const handleSignTx = async (password) => {
     dispatch(setErrorStatus(''));
-    if (!auth.account) {
+    if (!state.account) {
       dispatch(setErrorStatus('No Account selected'));
-    } else if (auth.account !== '') {
+    } else if (state.account !== '') {
       // For signing With private key.
       // Not to be confused with deploying unsigned Tx
       const {transaction, rawTransaction, Error} = await signTransaction(
         password,
-        tx.unsignedTx,
-        comp.testnetID
+        state.unsignedTx,
+        state.testnetID
       );
       if (Error) {
         dispatch(setErrorStatus(Error.message));
@@ -179,10 +176,10 @@ const HomeScreen = (props) => {
   };
 
   const handleDeployTx = () => {
-    if (tx.rawTx !== '' && auth.token !== '') {
+    if (state.rawTx !== '' && state.token !== '') {
       dispatch(setErrorStatus(''));
       dispatch(setLoaderStatus(true));
-      dispatch(deploySignedTx(tx.rawTx, comp.testnetID, auth.token));
+      dispatch(deploySignedTx(state.rawTx, state.testnetID, state.token));
     } else {
       dispatch(setErrorStatus('Maybe Transaction not signed or no auth token generated'));
     }
@@ -226,7 +223,7 @@ const HomeScreen = (props) => {
     try {
       await deleteKeyPair(password);
       dispatch(setAccounts());
-      // dispatch(setCurrentAccount(auth.accounts[0]));
+      // dispatch(setCurrentAccount(state.accounts[0]));
     } catch (e) {
       dispatch(setErrorStatus('Something went wrong'));
     }
@@ -261,23 +258,23 @@ const HomeScreen = (props) => {
       <Error />
       <Layout style={styles.keyActionContainerLayout}>
         {/* we should have a list of available keys */}
-        {auth.account && (
+        {state.account && (
           <Input
             label="Public Key"
             placeholder="Your Public key will appear here!"
-            value={auth.account.address}
+            value={state.account.address}
             disabled
           />
         )}
         {/* Keystore files selector */}
-        {auth.accounts.length > 0 && <KsSelect />}
+        {state.accounts.length > 0 && <KsSelect />}
         <Layout>
           {pvtKey.length <= 0 && (
             <Layout>
               <Button onPress={() => setCreateModal(true)}>Generate Account Key/Pair</Button>
             </Layout>
           )}
-          {auth.account && Object.keys(auth.account).length > 0 && (
+          {state.account && Object.keys(state.account).length > 0 && (
             <Layout>
               <Button onPress={() => setShowModal(true)}>Show Public Key</Button>
               <Button onPress={() => setDeleteModal(true)}>Delete Current Account</Button>
@@ -313,9 +310,9 @@ const HomeScreen = (props) => {
             okBtnTxt="Sign"
           />
         )}
-        {auth.account && Object.keys(auth.account).length > 0 && showModal && (
+        {state.account && Object.keys(state.account).length > 0 && showModal && (
           <PubKeyModal
-            address={auth.account.address}
+            address={state.account.address}
             visible={showModal}
             setVisible={setShowModal}
             setError={() => dispatch(setErrorStatus())}
@@ -344,7 +341,7 @@ const HomeScreen = (props) => {
               alignItems: 'center',
               padding: 5,
             }}>
-            {tx && Object.keys(unsignedTxState).length > 0 && (
+            {state && Object.keys(unsignedTxState).length > 0 && (
               <Layout
                 style={{
                   marginBottom: 10,
@@ -352,7 +349,7 @@ const HomeScreen = (props) => {
                 }}>
                 <Card>
                   <Text appearance="hint">Transaction To Be Signed: </Text>
-                  {tx && unsignedTxState && (
+                  {state && unsignedTxState && (
                     <Layout>
                       <Layout>
                         <Input label="From:" value={unsignedTxState.from} disabled />
@@ -396,7 +393,7 @@ const HomeScreen = (props) => {
                 </Card>
               </Layout>
             )}
-            {tx && tx.rawTx.length > 0 && (
+            {state && state.rawTx.length > 0 && (
               <Layout
                 style={{
                   marginBottom: 10,
@@ -409,18 +406,18 @@ const HomeScreen = (props) => {
                       <Text>{txHash}</Text>
                     </Layout>
                   )}
-                  {tx.rawTx.length > 0 && (
+                  {state.rawTx.length > 0 && (
                     <Layout>
                       <Text appearance="hint">Raw Transaction:</Text>
-                      <Text>{tx.rawTx}</Text>
+                      <Text>{state.rawTx}</Text>
                     </Layout>
                   )}
                 </Card>
               </Layout>
             )}
-            {tx && Object.keys(tx.unsignedTx).length > 0 && (
+            {state && Object.keys(state.unsignedTx).length > 0 && (
               <Layout>
-                {tx.rawTx.length === 0 ? (
+                {state.rawTx.length === 0 ? (
                   <Layout>
                     <Button style={styles.signBtn} onPress={() => setSignModal(true)}>
                       Sign Transaction
@@ -490,13 +487,6 @@ const HomeScreen = (props) => {
     </Layout>
   );
 };
-HomeScreen.propTypes = {
-  // eslint-disable-next-line react/forbid-prop-types
-  auth: PropTypes.any,
-  // eslint-disable-next-line react/forbid-prop-types
-  tx: PropTypes.any,
-  // eslint-disable-next-line react/forbid-prop-types
-  comp: PropTypes.any,
-};
+HomeScreen.propTypes = {};
 
 export default HomeScreen;
