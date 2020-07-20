@@ -1,8 +1,9 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect, useRef, useContext} from 'react';
 import {Dimensions, TouchableOpacity, ScrollView, ToastAndroid} from 'react-native';
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
 import {Layout, Text, Button, Card, Icon, Input} from '@ui-kitten/components';
+import {Context} from '../configureStore';
 import {signTransaction, createKeyPair, getPvtKey, deleteKeyPair, setKs} from '../services/sign';
 import {
   setUnsignedTx,
@@ -39,6 +40,9 @@ const usePrevious = (value) => {
 const HomeScreen = (props) => {
   const {tx, auth, comp} = props;
 
+  // Global State and dispatch For Actions
+  const [state, dispatch] = useContext(Context);
+
   // Component State
   const [txHash, setTxHash] = useState('');
   const [unsignedTxState, setUnsignedTxState] = useState({});
@@ -54,7 +58,7 @@ const HomeScreen = (props) => {
   useEffect(() => {
     ToastAndroid.showWithGravity('Fetching AuthToken', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
     props.setLoaderStatus(true);
-    props.getAuthToken();
+    dispatch(getAuthToken());
     ToastAndroid.showWithGravity(
       'Looking for saved Keystores',
       ToastAndroid.SHORT,
@@ -78,7 +82,7 @@ const HomeScreen = (props) => {
       getUnsignedTx(tx.unsignedTxHash, auth.token)
         .then((unsignedTX) => {
           if (unsignedTX) {
-            props.setUnsignedTx(JSON.parse(unsignedTX));
+            dispatch(setUnsignedTx(JSON.parse(unsignedTX)));
           } else {
             props.setLoaderStatus(false);
             props.setErrorStatus('Invalid Transaction');
@@ -513,9 +517,7 @@ const mapStateToProps = ({tx, auth, comp}) => {
 };
 
 export default connect(mapStateToProps, {
-  setUnsignedTx,
   setRawTx,
-  getAuthToken,
   setUnsignedTxHash,
   deploySignedTx,
   setLoaderStatus,
