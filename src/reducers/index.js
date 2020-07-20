@@ -11,7 +11,7 @@ import {
   UNSIGNED_TX_HASH,
 } from '../actions/types';
 
-const Redducer = (state, action) => {
+const Reducer = (state, action) => {
   switch (action.type) {
     case SET_AUTH_TOKEN:
       return {...state, token: action.payload};
@@ -38,4 +38,4 @@ const Redducer = (state, action) => {
   }
 };
 
-export default Redducer;
+export default Reducer;

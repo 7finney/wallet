@@ -57,40 +57,40 @@ const HomeScreen = (props) => {
   // ComponentDidMount
   useEffect(() => {
     ToastAndroid.showWithGravity('Fetching AuthToken', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
-    props.setLoaderStatus(true);
+    dispatch(setLoaderStatus(true));
     dispatch(getAuthToken());
     ToastAndroid.showWithGravity(
       'Looking for saved Keystores',
       ToastAndroid.SHORT,
       ToastAndroid.BOTTOM
     );
-    props.setAccounts();
+    dispatch(setAccounts());
   }, []);
 
   useEffect(() => {
     if (auth.accounts.length > 0) {
-      props.setCurrentAccount(auth.accounts[0]);
+      dispatch(setCurrentAccount(auth.accounts[0]));
       setKs(0);
-      props.setLoaderStatus(false);
+      dispatch(setLoaderStatus(false));
     }
   }, [auth.accounts]);
 
   // ComponentDidUpdate for tx.unsignedTxHash. Triggers on tx Hash change
   useEffect(() => {
     if (tx.unsignedTxHash !== undefined && tx.unsignedTxHash !== '' && auth.token !== '') {
-      props.setLoaderStatus(true);
+      dispatch(setLoaderStatus(true));
       getUnsignedTx(tx.unsignedTxHash, auth.token)
         .then((unsignedTX) => {
           if (unsignedTX) {
             dispatch(setUnsignedTx(JSON.parse(unsignedTX)));
           } else {
-            props.setLoaderStatus(false);
-            props.setErrorStatus('Invalid Transaction');
+            dispatch(setLoaderStatus(false));
+            dispatch(setErrorStatus('Invalid Transaction'));
           }
         })
         .catch(() => {
-          props.setLoaderStatus(false);
-          props.setErrorStatus('Error Getting Transaction');
+          dispatch(setLoaderStatus(false));
+          dispatch(setErrorStatus('Error Getting Transaction'));
         });
     }
   }, [tx.unsignedTxHash]);
@@ -99,12 +99,12 @@ const HomeScreen = (props) => {
   useEffect(() => {
     if (tx.txReceipt.Error) {
       const msg = tx.txReceipt.Error.split('=').slice(-1)[0];
-      props.setErrorStatus(msg);
+      dispatch(setErrorStatus(msg));
     }
     if (tx.txReceipt.Status) {
-      props.setErrorStatus(tx.txReceipt.Status);
+      dispatch(setErrorStatus(tx.txReceipt.Status));
     }
-    props.setLoaderStatus(false);
+    dispatch(setLoaderStatus(false));
   }, [tx.txReceipt]);
 
   const prevAuth = auth ? usePrevious({auth}) : null;
@@ -116,10 +116,10 @@ const HomeScreen = (props) => {
       auth.token !== undefined &&
       prevAuth.auth.token !== auth.token
     ) {
-      props.setLoaderStatus(false);
+      dispatch(setLoaderStatus(false));
       ToastAndroid.showWithGravity('AuthToken Generated', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
     } else if (auth.token === '' || auth.token === null) {
-      props.setLoaderStatus(false);
+      dispatch(setLoaderStatus(false));
       ToastAndroid.showWithGravity(
         'AuthToken Generation Error. Please try again',
         ToastAndroid.LONG,
@@ -131,15 +131,15 @@ const HomeScreen = (props) => {
   // componentDidUpdate
   useEffect(() => {
     if (Object.keys(unsignedTxState).length === 0 && Object.keys(tx.unsignedTx).length > 0) {
-      props.setLoaderStatus(false);
+      dispatch(setLoaderStatus(false));
       setUnsignedTxState(tx.unsignedTx);
     }
   });
 
   const handleSignTx = async (password) => {
-    props.setErrorStatus('');
+    dispatch(setErrorStatus(''));
     if (!auth.account) {
-      props.setErrorStatus('No Account selected');
+      dispatch(setErrorStatus('No Account selected'));
     } else if (auth.account !== '') {
       // For signing With private key.
       // Not to be confused with deploying unsigned Tx
@@ -149,17 +149,17 @@ const HomeScreen = (props) => {
         comp.testnetID
       );
       if (Error) {
-        props.setErrorStatus(Error.message);
+        dispatch(setErrorStatus(Error.message));
       } else {
         setTxHash(transaction.hash);
-        props.setRawTx(rawTransaction);
+        dispatch(setRawTx(rawTransaction));
       }
     }
   };
 
   const updateUnsignedTx = (key, value) => {
     setTxHash('');
-    props.setRawTx('');
+    dispatch(setRawTx(''));
     // Deep Copying object
     const newTx = JSON.parse(JSON.stringify(unsignedTxState));
     newTx[key] = value;
@@ -168,28 +168,28 @@ const HomeScreen = (props) => {
 
   const handleScanner = (e) => {
     setScan(false);
-    props.setErrorStatus('');
+    dispatch(setErrorStatus(''));
     try {
-      props.setLoaderStatus(true);
-      props.setUnsignedTxHash(e.data);
+      dispatch(setLoaderStatus(true));
+      dispatch(setUnsignedTxHash(e.data));
     } catch (err) {
-      props.setErrorStatus('Invalid Transaction');
-      setTimeout(() => props.setErrorStatus(''), 5000);
+      dispatch(setErrorStatus('Invalid Transaction'));
+      setTimeout(() => dispatch(setErrorStatus('')), 5000);
     }
   };
 
   const handleDeployTx = () => {
     if (tx.rawTx !== '' && auth.token !== '') {
-      props.setErrorStatus('');
-      props.setLoaderStatus(true);
-      props.deploySignedTx(tx.rawTx, comp.testnetID, auth.token);
+      dispatch(setErrorStatus(''));
+      dispatch(setLoaderStatus(true));
+      dispatch(deploySignedTx(tx.rawTx, comp.testnetID, auth.token));
     } else {
-      props.setErrorStatus('Maybe Transaction not signed or no auth token generated');
+      dispatch(setErrorStatus('Maybe Transaction not signed or no auth token generated'));
     }
   };
 
   const loadPvtKey = async (password) => {
-    props.setLoaderStatus(true);
+    dispatch(setLoaderStatus(true));
     const keystore = JSON.parse(await getFromAsyncStorage('keystore'));
     ToastAndroid.showWithGravity(
       'Unlocking private key with password!',
@@ -199,38 +199,38 @@ const HomeScreen = (props) => {
     try {
       const pk = getPvtKey(keystore, password);
       setPvtKey(pk);
-      props.setErrorStatus('');
+      dispatch(setErrorStatus(''));
       ToastAndroid.showWithGravity('Private key loaded!', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
     } catch (err) {
-      props.setErrorStatus(err.message);
+      dispatch(setErrorStatus(err.message));
     }
-    props.setLoaderStatus(false);
+    dispatch(setLoaderStatus(false));
   };
 
   const handleGenerateKeyPair = async (password) => {
-    props.setLoaderStatus(true);
+    dispatch(setLoaderStatus(true));
     createKeyPair(password)
       .then(async () => {
         // loadPvtKey(password);
-        props.setAccounts();
-        props.setLoaderStatus(false);
+        dispatch(setAccounts());
+        dispatch(setLoaderStatus(false));
       })
       .catch((e) => {
-        props.setLoaderStatus(false);
-        props.setErrorStatus('Error Generating Private Key: ', e.message);
+        dispatch(setLoaderStatus(false));
+        dispatch(setErrorStatus('Error Generating Private Key: ', e.message));
       });
   };
 
   const handleDeleteKeyStore = async (password) => {
-    props.setLoaderStatus(true);
+    dispatch(setLoaderStatus(true));
     try {
       await deleteKeyPair(password);
-      props.setAccounts();
-      // props.setCurrentAccount(auth.accounts[0]);
+      dispatch(setAccounts());
+      // dispatch(setCurrentAccount(auth.accounts[0]));
     } catch (e) {
-      props.setErrorStatus('Something went wrong');
+      dispatch(setErrorStatus('Something went wrong'));
     }
-    props.setLoaderStatus(false);
+    dispatch(setLoaderStatus(false));
   };
 
   const saveKeystore = async () => {
@@ -239,7 +239,7 @@ const HomeScreen = (props) => {
     RNFS.writeFile(path, JSON.stringify(keystore), 'utf8')
       .then(() => {
         ToastAndroid.showWithGravity('Keystore saved!', ToastAndroid.SHORT, ToastAndroid.BOTTOM);
-        props.setAccounts();
+        dispatch(setAccounts());
       })
       .catch((err) => {
         ToastAndroid.showWithGravity(err.message, ToastAndroid.LONG, ToastAndroid.BOTTOM);
@@ -318,7 +318,7 @@ const HomeScreen = (props) => {
             address={auth.account.address}
             visible={showModal}
             setVisible={setShowModal}
-            setError={props.setErrorStatus}
+            setError={() => dispatch(setErrorStatus())}
           />
         )}
         {showPwdPrompt && (
@@ -473,13 +473,13 @@ const HomeScreen = (props) => {
         }}
         onPress={() => {
           setScan(!scan);
-          props.setErrorStatus('');
-          props.setLoaderStatus(false);
+          dispatch(setErrorStatus(''));
+          dispatch(setLoaderStatus(false));
           setTxHash('');
           setUnsignedTxState({});
-          props.setRawTx('');
-          props.setUnsignedTx({});
-          props.setUnsignedTxHash('');
+          dispatch(setRawTx(''));
+          dispatch(setUnsignedTx({}));
+          dispatch(setUnsignedTxHash(''));
         }}>
         {scan === false ? (
           <Icon style={styles.icon} fill="#8F9BB3" name="camera" />
@@ -491,15 +491,6 @@ const HomeScreen = (props) => {
   );
 };
 HomeScreen.propTypes = {
-  setUnsignedTx: PropTypes.func,
-  setRawTx: PropTypes.func,
-  setUnsignedTxHash: PropTypes.func,
-  getAuthToken: PropTypes.func,
-  deploySignedTx: PropTypes.func,
-  setLoaderStatus: PropTypes.func,
-  setErrorStatus: PropTypes.func,
-  setAccounts: PropTypes.func,
-  setCurrentAccount: PropTypes.func,
   // eslint-disable-next-line react/forbid-prop-types
   auth: PropTypes.any,
   // eslint-disable-next-line react/forbid-prop-types
@@ -508,20 +499,4 @@ HomeScreen.propTypes = {
   comp: PropTypes.any,
 };
 
-const mapStateToProps = ({tx, auth, comp}) => {
-  return {
-    tx,
-    auth,
-    comp,
-  };
-};
-
-export default connect(mapStateToProps, {
-  setRawTx,
-  setUnsignedTxHash,
-  deploySignedTx,
-  setLoaderStatus,
-  setErrorStatus,
-  setAccounts,
-  setCurrentAccount,
-})(HomeScreen);
+export default HomeScreen;
