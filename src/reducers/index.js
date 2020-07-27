@@ -14,6 +14,7 @@ import {
 const Reducer = (state, action) => {
   switch (action.type) {
     case SET_AUTH_TOKEN:
+      console.log('poay: ', action.payload);
       return {...state, token: action.payload};
     case SET_ACCOUNTS:
       return {...state, accounts: action.payload};

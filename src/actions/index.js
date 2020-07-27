@@ -53,7 +53,9 @@ export const getAuthToken = async () => {
     if (await verifyToken(token)) {
       return {type: SET_AUTH_TOKEN, payload: token};
     }
+    console.log('Token Rejeccted');
     token = await getToken();
+    console.log('authToken: ', token);
     setToAsyncStorage('authToken', token)
       .then(() => {
         return {type: SET_AUTH_TOKEN, payload: token};

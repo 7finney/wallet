@@ -37,6 +37,7 @@ export async function verifyToken(authToken) {
     const res = await axios.get(url);
     return res.status === 200;
   } catch (e) {
+    console.log('E: ', e);
     return false;
   }
 }
