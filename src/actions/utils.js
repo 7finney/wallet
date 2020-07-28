@@ -14,7 +14,7 @@ axios.interceptors.request.use((request) => {
  */
 export function getToken() {
   const appId = uuid.v1();
-  const url = `http://192.168.0.104:4550/api/v0/genToken/${appId}`;
+  const url = `http://wallet.ethco.de/api/v0/genToken/${appId}`;
   return axios
     .get(url)
     .then((response) => {
@@ -35,6 +35,7 @@ export async function verifyToken(authToken) {
   const url = `https://auth.ethco.de/verifyToken/${authToken}`;
   try {
     const res = await axios.get(url);
+    console.log('verifyToken: ', res);
     return res.status === 200;
   } catch (e) {
     console.log('E: ', e);
@@ -92,7 +93,7 @@ export async function removeFromAsyncStorage(key) {
  */
 export async function getUnsignedTx(txHash, authToken) {
   try {
-    const url = `http://192.168.0.104:4550/api/v0/getUnsignedTx/${txHash}`;
+    const url = `http://wallet.ethco.de/api/v0/getUnsignedTx/${txHash}`;
     const response = await axios.get(url, {
       headers: {
         authorization: `Bearer ${authToken}`,
@@ -112,7 +113,7 @@ export async function getUnsignedTx(txHash, authToken) {
  * @returns {Promise<AxiosResponse<any>|any>}
  */
 export async function deployTransaction(rawTx, networkId, token) {
-  const url = 'http://192.168.0.104:4550/api/v0/sendTx';
+  const url = 'http://wallet.ethco.de/api/v0/sendTx';
   const req = {
     netId: networkId,
     rawTx,

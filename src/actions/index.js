@@ -23,54 +23,53 @@ import {listAccounts} from '../services/sign';
  *  setUnsignedTx Func -> Sets the Unsigned TX
  *  @param {data: any} -- unsigned Data from server
  * */
-export const setUnsignedTx = (data) => {
-  return {type: UNSIGNED_TX, payload: data};
+export const setUnsignedTx = (data, dispatch) => {
+  dispatch({type: UNSIGNED_TX, payload: data});
 };
 
 /**
  *  setUnsignedTxHash Func -> Sets the Unsigned TX hash from the QRScanner
  *  @param {data: any} -- unsigned Data from QRScanner
  * */
-export const setUnsignedTxHash = (data) => {
-  return {type: UNSIGNED_TX_HASH, payload: data};
+export const setUnsignedTxHash = (data, dispatch) => {
+  dispatch({type: UNSIGNED_TX_HASH, payload: data});
 };
 
 /**
  *  setRawTx Func -> Sets the rawTX after signing
  *  @param {data: string} -- rawTx after signing
  * */
-export const setRawTx = (data) => {
-  return {type: RAW_TX, payload: data};
+export const setRawTx = (data, dispatch) => {
+  dispatch({type: RAW_TX, payload: data});
 };
 
 /**
  *  getAuthToken -> Sets the auth token at the beginning
  */
 // eslint-disable-next-line consistent-return
-export const getAuthToken = async () => {
+export const getAuthToken = async (dispatch) => {
   let token = await getFromAsyncStorage('authToken');
   if (token) {
     if (await verifyToken(token)) {
-      return {type: SET_AUTH_TOKEN, payload: token};
+      dispatch({type: SET_AUTH_TOKEN, payload: token});
+      return;
     }
-    console.log('Token Rejeccted');
     token = await getToken();
-    console.log('authToken: ', token);
     setToAsyncStorage('authToken', token)
       .then(() => {
-        return {type: SET_AUTH_TOKEN, payload: token};
+        dispatch({type: SET_AUTH_TOKEN, payload: token});
       })
       .catch(() => {
-        return {type: SET_AUTH_TOKEN, payload: null};
+        dispatch({type: SET_AUTH_TOKEN, payload: null});
       });
   } else {
     token = await getToken();
     setToAsyncStorage('authToken', token)
       .then(() => {
-        return {type: SET_AUTH_TOKEN, payload: token};
+        dispatch({type: SET_AUTH_TOKEN, payload: token});
       })
       .catch(() => {
-        return {type: SET_AUTH_TOKEN, payload: null};
+        dispatch({type: SET_AUTH_TOKEN, payload: null});
       });
   }
 };
@@ -81,7 +80,7 @@ export const getAuthToken = async () => {
  * @param networkId
  */
 // eslint-disable-next-line consistent-return
-export const deploySignedTx = async (rawTx, networkId) => {
+export const deploySignedTx = async (rawTx, networkId, dispatch) => {
   const token = await getFromAsyncStorage('authToken');
   let result;
   try {
@@ -90,7 +89,7 @@ export const deploySignedTx = async (rawTx, networkId) => {
     result = e;
   }
   if (result) {
-    return {type: DEPLOY_SIGNED_TX, payload: result.data};
+    dispatch({type: DEPLOY_SIGNED_TX, payload: result.data});
   }
 };
 
@@ -98,39 +97,39 @@ export const deploySignedTx = async (rawTx, networkId) => {
  * Sets The Loader status
  * @param data
  */
-export const setLoaderStatus = (data) => {
-  return {type: SET_LOADER_STATUS, payload: data};
+export const setLoaderStatus = (data, dispatch) => {
+  dispatch({type: SET_LOADER_STATUS, payload: data});
 };
 
 /**
  * Sets the Error MSG
  * @param data
  */
-export const setErrorStatus = (data) => {
-  return {type: SET_ERROR_STATUS, payload: data};
+export const setErrorStatus = (data, dispatch) => {
+  dispatch({type: SET_ERROR_STATUS, payload: data});
 };
 
 /**
  * Sets the Testnet throughout the app
  * @param data - testnet ID
  */
-export const setTestnetID = (data) => {
-  return {type: SET_TESTNET_ID, payload: data};
+export const setTestnetID = (data, dispatch) => {
+  dispatch({type: SET_TESTNET_ID, payload: data});
 };
 
 /**
  * Sets all available accounts
  * @param data
  */
-export const setAccounts = async () => {
+export const setAccounts = async (dispatch) => {
   const a = await listAccounts();
-  return {type: SET_ACCOUNTS, payload: a};
+  dispatch({type: SET_ACCOUNTS, payload: a});
 };
 
 /**
  * Set the current account
  * @param data
  */
-export const setCurrentAccount = (data) => {
-  return {type: SET_CURRENT_ACCOUNT, payload: data};
+export const setCurrentAccount = (data, dispatch) => {
+  dispatch({type: SET_CURRENT_ACCOUNT, payload: data});
 };
