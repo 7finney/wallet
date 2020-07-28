@@ -12,7 +12,7 @@ const Error = () => {
   useEffect(() => {
     if (state.errorMsg !== '' && !interval) {
       interval = setTimeout(() => {
-        dispatch(setErrorStatus(''));
+        setErrorStatus('', dispatch);
         interval = null;
       }, 5000);
     }

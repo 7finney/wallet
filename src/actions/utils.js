@@ -3,10 +3,11 @@ import uuid from 'react-native-uuid';
 import AsyncStorage from '@react-native-community/async-storage';
 import qs from 'querystring';
 
-axios.interceptors.request.use((request) => {
-  console.log('Starting Request', request);
-  return request;
-});
+// TODO OPEN when debugging, close in production
+// axios.interceptors.request.use((request) => {
+//   console.log('Starting Request', request);
+//   return request;
+// });
 
 /**
  * getToken() -> Fetches a fresh auth token and return it
@@ -35,7 +36,6 @@ export async function verifyToken(authToken) {
   const url = `https://auth.ethco.de/verifyToken/${authToken}`;
   try {
     const res = await axios.get(url);
-    console.log('verifyToken: ', res);
     return res.status === 200;
   } catch (e) {
     console.log('E: ', e);

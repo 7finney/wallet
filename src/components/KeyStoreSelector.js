@@ -33,7 +33,7 @@ const KsSelect = () => {
 
   const handleSelect = (index) => {
     setSelectedIndex(index);
-    dispatch(setCurrentAccount(state.accounts[index - 1]));
+    setCurrentAccount(state.accounts[index - 1], dispatch);
     setKs(index - 1)
       .then(() => {
         console.log('KeyStore set successful!');

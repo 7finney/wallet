@@ -36,9 +36,9 @@ const TestnetSelector = () => {
     const testnetName = testNetArray[selectedTestnet.row];
     const networkID = networkIdList[testnetName];
     if (networkID) {
-      dispatch(setTestnetID(networkID));
+      setTestnetID(networkID, dispatch);
     } else {
-      dispatch(setTestnetID(1));
+      setTestnetID(1, dispatch);
     }
   }, [selectedTestnet]);
 
