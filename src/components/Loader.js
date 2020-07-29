@@ -1,13 +1,13 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import {Layout, Spinner} from '@ui-kitten/components';
-import PropTypes from 'prop-types';
-import {connect} from 'react-redux';
+import {Context} from '../configureStore';
 
-const Loader = (props) => {
-  const {comp} = props;
+const Loader = () => {
+  // Global State and dispatch For Actions
+  const [state] = useContext(Context);
   return (
     <>
-      {comp.loader && (
+      {state.loader && (
         <Layout
           style={{
             backgroundColor: '#fff',
@@ -25,15 +25,6 @@ const Loader = (props) => {
   );
 };
 
-Loader.propTypes = {
-	// eslint-disable-next-line react/forbid-prop-types
-  comp: PropTypes.any,
-};
+Loader.propTypes = {};
 
-function mapStateToProps({comp}) {
-  return {
-    comp,
-  };
-}
-
-export default connect(mapStateToProps)(Loader);
+export default Loader;

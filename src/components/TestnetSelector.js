@@ -1,8 +1,7 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useContext} from 'react';
 import {IndexPath, Layout, Select, SelectItem} from '@ui-kitten/components';
-import PropTypes from 'prop-types';
-import {connect} from 'react-redux';
 import {setTestnetID} from '../actions';
+import {Context} from '../configureStore';
 
 const testNetArray = ['Ethereum Mainnet', 'Goerli', 'Ropsten', 'Rinkeby'];
 
@@ -13,7 +12,10 @@ const networkIdList = {
   Goerli: 5,
 };
 
-const TestnetSelector = (props) => {
+const TestnetSelector = () => {
+  // Global State and dispatch For Actions
+  const [state, dispatch] = useContext(Context);
+
   const [selectedTestnet, setTestnet] = useState(new IndexPath(0));
 
   const renderOption = (t) => <SelectItem title={t} key={t} />;
@@ -21,7 +23,7 @@ const TestnetSelector = (props) => {
 
   useEffect(() => {
     const testNetName = Object.keys(networkIdList).find(
-      (k) => networkIdList[k] === props.testnetID
+      (k) => networkIdList[k] === state.testnetID
     );
     if (testNetName) {
       setTestnet(new IndexPath(testNetArray.indexOf(testNetName)));
@@ -34,9 +36,9 @@ const TestnetSelector = (props) => {
     const testnetName = testNetArray[selectedTestnet.row];
     const networkID = networkIdList[testnetName];
     if (networkID) {
-      props.setTestnetID(networkID);
+      setTestnetID(networkID, dispatch);
     } else {
-      props.setTestnetID(1);
+      setTestnetID(1, dispatch);
     }
   }, [selectedTestnet]);
 
@@ -62,16 +64,6 @@ const TestnetSelector = (props) => {
   );
 };
 
-TestnetSelector.propTypes = {
-  testnetID: PropTypes.number,
-  setTestnetID: PropTypes.func,
-};
+TestnetSelector.propTypes = {};
 
-function mapStateToProps({comp}) {
-  const {testnetID} = comp;
-  return {
-    testnetID,
-  };
-}
-
-export default connect(mapStateToProps, {setTestnetID})(TestnetSelector);
+export default TestnetSelector;

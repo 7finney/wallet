@@ -1,44 +1,34 @@
-import React, {useEffect} from 'react';
+import React, {useContext, useEffect} from 'react';
 import {Layout, Text} from '@ui-kitten/components';
-import PropTypes from 'prop-types';
-import {connect} from 'react-redux';
 import styles from '../screens/HomeScreenStyle';
 import {setErrorStatus} from '../actions';
+import {Context} from '../configureStore';
 
-const Error = (props) => {
-  const {comp} = props;
+const Error = () => {
   let interval;
+  // Global State and dispatch For Actions
+  const [state, dispatch] = useContext(Context);
 
   useEffect(() => {
-    if (comp.errorMsg !== '' && !interval) {
+    if (state.errorMsg !== '' && !interval) {
       interval = setTimeout(() => {
-        props.setErrorStatus('');
+        setErrorStatus('', dispatch);
         interval = null;
       }, 5000);
     }
-  }, [comp.errorMsg]);
+  }, [state.errorMsg]);
 
   return (
     <>
-      {comp.errorMsg !== '' && (
+      {state.errorMsg !== '' && (
         <Layout style={styles.error}>
-          <Text style={{textAlign: 'center', color: '#fff', fontSize: 18}}>{comp.errorMsg}</Text>
+          <Text style={{textAlign: 'center', color: '#fff', fontSize: 18}}>{state.errorMsg}</Text>
         </Layout>
       )}
     </>
   );
 };
 
-Error.propTypes = {
-  // eslint-disable-next-line react/forbid-prop-types
-  comp: PropTypes.any,
-  setErrorStatus: PropTypes.func,
-};
+Error.propTypes = {};
 
-function mapStateToProps({comp}) {
-  return {
-    comp,
-  };
-}
-
-export default connect(mapStateToProps, {setErrorStatus})(Error);
+export default Error;
