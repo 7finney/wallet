@@ -127,7 +127,6 @@ const HomeScreen = () => {
 
   // componentDidUpdate
   useEffect(() => {
-    console.log('state:', state);
     if (Object.keys(unsignedTxState).length === 0 && Object.keys(state.unsignedTx).length > 0) {
       setLoaderStatus(false, dispatch);
       setUnsignedTxState(state.unsignedTx);

@@ -78,10 +78,10 @@ export const getAuthToken = async (dispatch) => {
  * deploySignedTx -> Deploys the signed tx and sets the Tx Receipt
  * @param rawTx
  * @param networkId
+ * @param dispatch
  */
 // eslint-disable-next-line consistent-return
-export const deploySignedTx = async (rawTx, networkId, dispatch) => {
-  const token = await getFromAsyncStorage('authToken');
+export const deploySignedTx = async (rawTx, networkId, token, dispatch) => {
   let result;
   try {
     result = await deployTransaction(rawTx, networkId, token);
