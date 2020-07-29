@@ -73,7 +73,7 @@ const KeyModal = ({visible, handleOk, setVisible, okBtnTxt}) => {
               secureTextEntry={!showPassword}
               value={String(password)}
               accessoryRight={InputEyeIcon}
-              onChangeText={setPassword}
+              onChangeText={p => setPassword(p)}
             />
           </Layout>
         </Layout>
