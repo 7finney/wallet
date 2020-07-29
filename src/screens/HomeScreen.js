@@ -1,6 +1,5 @@
 import React, {useState, useEffect, useRef, useContext} from 'react';
 import {Dimensions, TouchableOpacity, ScrollView, ToastAndroid} from 'react-native';
-import PropTypes from 'prop-types';
 import {Layout, Text, Button, Card, Icon, Input} from '@ui-kitten/components';
 import {Context} from '../configureStore';
 import {signTransaction, createKeyPair, getPvtKey, deleteKeyPair, setKs} from '../services/sign';
