@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import QRCodeScanner from 'react-native-qrcode-scanner';
 import {TouchableOpacity, Text, StyleSheet, View} from 'react-native';
+import PropTypes from 'prop-types';
 
 const styles = StyleSheet.create({
   centerText: {
@@ -63,6 +64,10 @@ const QRScanner = ({onSuccess}) => {
       }
     />
   );
+};
+
+QRScanner.propTypes = {
+  onSuccess: PropTypes.func,
 };
 
 export default QRScanner;
