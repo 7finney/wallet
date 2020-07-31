@@ -3,10 +3,14 @@ import uuid from 'react-native-uuid';
 import AsyncStorage from '@react-native-community/async-storage';
 import qs from 'querystring';
 
-// TODO OPEN when debugging, close in production
+// TODO: Uncomment when debugging, comment in production
 // axios.interceptors.request.use((request) => {
 //   console.log('Starting Request', request);
 //   return request;
+// });
+// axios.interceptors.response.use((response) => {
+//   console.log('Got response', response);
+//   return response;
 // });
 
 /**
@@ -15,7 +19,7 @@ import qs from 'querystring';
  */
 export function getToken() {
   const appId = uuid.v1();
-  const url = `http://wallet.ethco.de/api/v0/genToken/${appId}`;
+  const url = `https://wallet.ethco.de/api/v0/genToken/${appId}`;
   return axios
     .get(url)
     .then((response) => {
@@ -94,6 +98,7 @@ export async function removeFromAsyncStorage(key) {
 export async function getUnsignedTx(txHash, authToken) {
   try {
     const url = `https://wallet.ethco.de/api/v0/getUnsignedTx/${txHash}`;
+    // const url = `http://192.168.0.7:4550/api/v0/getUnsignedTx/${txHash}`;
     const response = await axios.get(url, {
       headers: {
         authorization: `Bearer ${authToken}`,
@@ -114,6 +119,7 @@ export async function getUnsignedTx(txHash, authToken) {
  */
 export async function deployTransaction(rawTx, networkId, token) {
   const url = 'https://wallet.ethco.de/api/v0/sendTx';
+  // const url = 'http://192.168.0.7:4550/api/v0/sendTx';
   const req = {
     netId: networkId,
     rawTx,

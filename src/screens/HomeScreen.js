@@ -22,7 +22,7 @@ import PubKeyModal from '../components/PubKeyModal';
 import KsSelect from '../components/KeyStoreSelector';
 import PwdPrompt from '../components/PwdPrompt';
 import styles from './HomeScreenStyle';
-import Error from '../components/Error';
+import ErrorView from '../components/Error';
 import TestnetSelector from '../components/TestnetSelector';
 
 const RNFS = require('react-native-fs');
@@ -133,6 +133,8 @@ const HomeScreen = () => {
   });
 
   const handleSignTx = async (password) => {
+    console.log("Sign transaction");
+    console.log(unsignedTxState);
     setErrorStatus('', dispatch);
     if (!state.account) {
       setErrorStatus('No Account selected', dispatch);
@@ -141,7 +143,7 @@ const HomeScreen = () => {
       // Not to be confused with deploying unsigned Tx
       const {transaction, rawTransaction, Error} = await signTransaction(
         password,
-        state.unsignedTx,
+        unsignedTxState,
         state.testnetID
       );
       if (Error) {
@@ -159,6 +161,7 @@ const HomeScreen = () => {
     // Deep Copying object
     const newTx = JSON.parse(JSON.stringify(unsignedTxState));
     newTx[key] = value;
+    console.log(newTx);
     setUnsignedTxState(newTx);
   };
 
@@ -254,7 +257,7 @@ const HomeScreen = () => {
         </Text>
       </Layout>
       <Loader />
-      <Error />
+      <ErrorView />
       <Layout style={styles.keyActionContainerLayout}>
         {/* we should have a list of available keys */}
         {state.account && (

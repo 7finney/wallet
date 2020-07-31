@@ -4,9 +4,8 @@ import styles from '../screens/HomeScreenStyle';
 import {setErrorStatus} from '../actions';
 import {Context} from '../configureStore';
 
-const Error = () => {
+const ErrorView = () => {
   let interval;
-  // Global State and dispatch For Actions
   const [state, dispatch] = useContext(Context);
 
   useEffect(() => {
@@ -29,6 +28,6 @@ const Error = () => {
   );
 };
 
-Error.propTypes = {};
+ErrorView.propTypes = {};
 
-export default Error;
+export default ErrorView;
