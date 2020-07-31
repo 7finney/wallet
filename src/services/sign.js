@@ -6,16 +6,25 @@ import {setToAsyncStorage} from '../actions/utils';
 const geth = new Geth({networkID: 5, testNet: 'goerli'});
 
 global.Buffer = Buffer;
-
-// const Buffer = require('buffer').Buffer;
-// const EthereumTx = require('ethereumjs-tx').Transaction;
-// const formatters = require('web3-core-helpers').formatters;
 const keythereum = require('keythereum');
 
+function trimInput(input) {
+  return input.startsWith('0x') ? input.slice(2) : input;
+}
 // sign an unsigned raw transaction and deploy
 export async function signTransaction(password, tx) {
   try {
-    const {transaction, raw} = await geth.signTransaction(password, tx);
+    const txInput = {
+      chainId: tx.chainId,
+      to: tx.to,
+      from: tx.from,
+      value: tx.value,
+      nonce: tx.nonce,
+      gasLimit: parseInt(tx.gas, 10),
+      gasPrice: tx.gasPrice,
+      data: trimInput(tx.data),
+    };
+    const {transaction, raw} = await geth.signTransaction(password, txInput);
     return {
       transaction: JSON.parse(transaction),
       rawTransaction: `0x${raw}`,
@@ -54,7 +63,7 @@ export function deleteKeyPair(password) {
         resolve(true);
       })
       .catch((e) => {
-        reject(false);
+        reject(e);
       });
   });
   // return removeFromAsyncStorage(publicKey);

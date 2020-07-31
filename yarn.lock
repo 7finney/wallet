@@ -6482,7 +6482,7 @@ react-native-fs@^2.16.6:
 
 "react-native-geth@https://github.com/0mkara/react-native-geth":
   version "0.1.0-development"
-  resolved "https://github.com/0mkara/react-native-geth#ddd6077169e10d3bddf609a80058899db4e0c113"
+  resolved "https://github.com/0mkara/react-native-geth#38d776c3db620f522ba8e1fb8b38d0602e2f892f"
 
 react-native-level-fs@^3.0.1:
   version "3.0.1"
