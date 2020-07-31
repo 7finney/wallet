@@ -97,8 +97,8 @@ export async function removeFromAsyncStorage(key) {
  */
 export async function getUnsignedTx(txHash, authToken) {
   try {
-    // const url = `https://wallet.ethco.de/api/v0/getUnsignedTx/${txHash}`;
-    const url = `http://192.168.0.7:4550/api/v0/getUnsignedTx/${txHash}`;
+    const url = `https://wallet.ethco.de/api/v0/getUnsignedTx/${txHash}`;
+    // const url = `http://192.168.0.7:4550/api/v0/getUnsignedTx/${txHash}`;
     const response = await axios.get(url, {
       headers: {
         authorization: `Bearer ${authToken}`,
@@ -118,8 +118,8 @@ export async function getUnsignedTx(txHash, authToken) {
  * @returns {Promise<AxiosResponse<any>|any>}
  */
 export async function deployTransaction(rawTx, networkId, token) {
-  // const url = 'https://wallet.ethco.de/api/v0/sendTx';
-  const url = 'http://192.168.0.7:4550/api/v0/sendTx';
+  const url = 'https://wallet.ethco.de/api/v0/sendTx';
+  // const url = 'http://192.168.0.7:4550/api/v0/sendTx';
   const req = {
     netId: networkId,
     rawTx,
