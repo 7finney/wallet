@@ -7,6 +7,9 @@
 cd android
 ./gradlew assembleRelease
 ```
+## Downloads
+* Download apk from IPFS — https://gateway.ipfs.io/ipfs/QmSziuA9wfxfA1thfdswgb3KfjE3sF7QRmeaXBax4zuDGb
+* Download apk from google drive — https://drive.google.com/file/d/1WnLUHSCTsaLCx_ZVsClb1BpWjP4vVzID/view?usp=sharing
 
 ## Usage
 
